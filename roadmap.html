@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="roadTitle">Roadmap — Noderunners Radio</title>
+<style>
+  :root{ --ether:#0a1a1f; --ether-2:#0f262d; --ether-3:#0c2027; --foam:#e6eff0; --foam-dim:#8aa4aa; --line:#1d3a42; --signal:#f7931a; --signal-2:#d06b29; --signal-dim:#b86d12; --radio-fill:#37525a; }
+  * { box-sizing:border-box; }
+  html{ background:var(--ether); }
+  body{
+    background:transparent; color:var(--foam); margin:0; padding:0 20px 40px;
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    line-height:1.6;
+  }
+  body::before{ content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:url("/assets/ship-bg.jpg") center 20% / cover no-repeat; opacity:0.14;
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent);
+            mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent); }
+  body::after{ content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(ellipse at 20% 0%, rgba(247,147,26,0.06), transparent 55%); }
+  .wrap{ max-width:760px; margin:0 auto; }
+  .mainmenu { display:flex; flex-wrap:wrap; gap:4px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .mainmenu a { color:var(--foam-dim); text-decoration:none; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; padding:2px 12px; border-radius:4px; transition:.15s; }
+  .mainmenu a:hover { color:var(--foam); background:rgba(247,147,26,0.08); }
+
+  /* Phones: the menu wraps instead of shoving the whole page sideways
+     (six links measured 448px inside a 320px bar -- found 2026-07-28). */
+  @media (max-width: 560px) {
+    .mainmenu { gap: 2px; padding: 3px 6px; }
+    .mainmenu a { font-size: 0.66rem; padding: 3px 8px; letter-spacing: 0.05em; }
+  }
+
+  .mainmenu a.active { color:var(--signal); }
+  h1{ color:var(--signal); font-size:1.5rem; margin:34px 0 6px; }
+  .sub{ color:var(--foam-dim); font-size:0.9rem; margin-bottom:26px; }
+  .card{ background:rgba(15,38,45,0.82); border:1px solid var(--line); border-radius:8px; padding:20px 24px; margin:18px 0; }
+  h2{ color:var(--signal); font-size:1.05rem; margin:0 0 10px; }
+  a{ color:var(--signal); }
+  .muted{ color:var(--foam-dim); font-size:0.85rem; }
+  .ladder{ display:flex; flex-direction:column; gap:12px; }
+  .tier{ background:var(--ether-2); border:1px solid var(--line); border-radius:6px; padding:14px 16px; }
+  .tier.now{ border-color:var(--signal-dim); box-shadow:0 0 0 1px rgba(247,147,26,.12) inset; }
+  .tier-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .tier-name{ display:flex; align-items:center; gap:10px; }
+  .pill{ font-size:.6rem; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--foam-dim); }
+  .pill.on{ color:var(--ether); background:var(--signal); border-color:var(--signal); }
+  .tier-name .nm{ font-weight:700; }
+  .splitnums{ font-variant-numeric:tabular-nums; font-size:1.05rem; font-weight:700; letter-spacing:.02em; }
+  .splitnums .r{ color:var(--foam-dim); }
+  .splitnums .sep{ color:var(--line); margin:0 6px; }
+  .splitnums .y{ color:var(--signal); }
+  .bar{ display:flex; height:14px; margin-top:11px; border-radius:3px; overflow:hidden; border:1px solid var(--line); }
+  .bar .seg-r{ background:var(--radio-fill); }
+  .bar .seg-y{ background:var(--signal); }
+  .tier-cap{ margin-top:9px; font-size:.85rem; color:var(--foam-dim); }
+  .legend{ display:flex; gap:16px; margin-top:10px; font-size:.7rem; color:var(--foam-dim); letter-spacing:.04em; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .sw{ width:11px; height:11px; border-radius:2px; border:1px solid var(--line); display:inline-block; }
+  .sw.y{ background:var(--signal); } .sw.r{ background:var(--radio-fill); }
+  .why{ margin-top:16px; padding:16px 18px; border:1px solid var(--line); border-left:3px solid var(--signal);
+    border-radius:0 6px 6px 0; background:var(--ether-3); }
+  .why .eyebrow{ display:block; margin-bottom:8px; font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--signal); }
+  .why p{ color:var(--foam); margin:0; }
+  .shipname{ color:var(--foam); font-weight:700; letter-spacing:.02em; white-space:nowrap; }
+  ul{ margin:8px 0; padding-left:22px; }
+  li{ margin:5px 0; }
+
+  header.sitehead { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:22px 0 16px; border-bottom:1px solid var(--line); }
+  .header-left { grid-column:1; justify-self:start; display:flex; align-items:center; gap:12px; }
+  .hd-avatar { width:48px; height:48px; border-radius:50%; border:2px solid var(--signal-2, #d06b29); background:#000; }
+  .brand { display:flex; flex-direction:column; align-items:center; gap:6px; grid-column:2; }
+  .brand .logo { height:38px; width:auto; }
+  .brand .coords { font-size:0.62rem; color:var(--foam-dim); letter-spacing:0.14em; text-transform:uppercase; text-align:center; }
+  .socials { grid-column:3; justify-self:end; display:inline-flex; gap:6px; }
+  .socials a { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--line); border-radius:6px; color:var(--foam-dim); transition:.15s; }
+  .socials a:hover { color:var(--signal); border-color:var(--signal-dim, #b86d12); background:rgba(247,147,26,0.06); }
+  .socials a svg { width:16px; height:16px; }
+/* nr_header_mobile (2026-09-14): narrow screens -- avatar+badge left, socials right, wordmark on its own row under them.
+   Desktop untouched. Same fix as the homepage. */
+@media (max-width: 720px) {
+  header.sitehead { grid-template-columns:1fr auto; grid-template-areas:"left socials" "brand brand"; gap:10px; padding:16px 0 12px; }
+  header.sitehead .header-left { grid-area:left; }
+  header.sitehead .socials { grid-area:socials; }
+  header.sitehead .brand { grid-area:brand; justify-self:center; }
+  header.sitehead .brand .logo { height:auto; width:240px; max-width:calc(100vw - 40px); }
+}
+@media (max-width: 400px) {
+  header.sitehead .socials a { width:30px; height:30px; }
+  header.sitehead .socials a svg { width:14px; height:14px; }
+  header.sitehead .header-left { gap:8px; }
+  header.sitehead .live-dot { letter-spacing:.08em; }
+  header.sitehead .socials { gap:4px; }
+  .hd-avatar { width:44px; height:44px; }
+}
+  .live-dot { display:inline-flex; align-items:center; gap:8px; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--foam-dim); }
+  .live-dot .dot { width:9px; height:9px; border-radius:50%; background:var(--foam-dim); }
+  .live-dot.on { color:var(--signal); }
+  .live-dot.on .dot { background:var(--signal); }
+
+  /* nr_i18n (2026-09-11) + nr_langdd (2026-09-12, SF: "it takes up too much space"): the language switch is ONE
+     PILL showing the current language; a tap opens the six under it. The two-letter CODES carry the meaning, flags
+     decorate; the current row is bold with a check mark. Works in black and white. Native <details>: no script to open. */
+  .nrLang { position: relative; display: inline-flex; align-items: center; font-size: 0.66rem; letter-spacing: 0.06em; color: var(--foam, #fff); }
+  .nrLang .nrDd { position: relative; }
+  .nrLang .nrDd > summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; padding: 1px 7px;
+    border: 1px solid var(--nrLangEdge, var(--signal, #f7931a)); border-radius: 3px; cursor: pointer; font-weight: 700; line-height: 1.4; user-select: none; }
+  .nrLang .nrDd > summary::-webkit-details-marker { display: none; }
+  .nrDd > summary { color: var(--foam-dim, var(--ink-dim, var(--mist, #9aa))); }
+  .nrDd > summary:hover, .nrDd[open] > summary { color: var(--foam, var(--ink, var(--paper, #fff))); }
+  .nrLang .nrDd > summary:focus-visible { outline: 3px solid var(--signal, #f5a623); outline-offset: 2px; }
+  .nrLang .nrCaret { display: inline-block; font-size: 0.8em; transition: transform .15s; }
+  .nrLang .nrDd[open] > summary .nrCaret { transform: rotate(180deg); }
+  .nrLang .nrDdMenu { position: absolute; right: 0; top: calc(100% + 4px); min-width: 12em; max-width: calc(100vw - 16px);
+    display: grid; gap: 2px; padding: 4px; background: #0f141b; color: var(--foam, #fff); border: 1px solid currentColor;
+    border-radius: 8px; z-index: 50; box-shadow: 0 6px 18px rgba(0,0,0,.45); text-align: left; }
+  .nrLang .nrDdMenu a, .nrLang .nrDdMenu .cur { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px;
+    white-space: nowrap; text-decoration: none; color: inherit; border: 2px solid transparent; min-height: 32px; box-sizing: border-box;
+    text-transform: none; font-weight: 400; }
+  .nrLang .nrDdMenu a:hover, .nrLang .nrDdMenu a:focus-visible { border-color: currentColor; outline: none; }
+  .nrLang .nrDdMenu b { font-weight: 700; }
+  .nrLang .nrDdMenu .cur { font-weight: 700; }
+  .nrLang .nrDdMenu .nm { font-weight: 400; letter-spacing: 0; }
+  .nrLang .nrDdMenu .ck { margin-left: auto; font-weight: 700; }
+  /* closed = hidden, said outright: an author display rule on the menu must never beat the browser's own hiding */
+  .nrLang .nrDd:not([open]) > .nrDdMenu { display: none; }
+  .nrLang svg { border-radius: 2px; flex: none; }
+  .nrEnCounts { font-size: 0.62rem; font-style: italic; opacity: 0.8; }
+  /* In the radio's main menu the pill sits right after "Log in", at the menu's own small size. */
+  .mainmenu .nrLang { display: inline-flex; margin-left: 6px; }
+  /* nr_menuend (2026-09-15, SF: "LOG IN & language pill don't stick to the right of the menu bar anymore"): Log in
+     and the language pill are ONE group at the right end of its line, also when the menu wraps. */
+  .nrMenuEnd { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nrMenuEnd .nrLang { margin-left: 2px; }
+  .mainmenu .nrLang .nrDd > summary { padding: 1px 7px; font-size: 0.62rem; letter-spacing: 0.04em; }
+  /* The jukebox-mode copy (the phone page behind the arcade QR) sits in the narrow #jukeBanner: the same small pill. */
+  #jukeBanner .nrLang .nrDd > summary { padding: 1px 6px; font-size: 0.62rem; letter-spacing: 0.04em; gap: 4px; }
+  /* that pill stands at the LEFT of the banner, so its list opens to the right, inside a 375 px screen */
+  #jukeBanner .nrLang .nrDdMenu { right: auto; left: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="sitehead">
+    <div class="header-left">
+      <a href="/"><img class="hd-avatar" src="/assets/avatar.webp" alt="Noderunners Radio"></a>
+      <div class="live-dot" id="liveBadge"><span class="dot"></span><span id="liveText" data-i18n-soft="playBadgeOffline">offline</span></div>
+    </div>
+    <div class="brand">
+      <a href="/"><img class="logo" src="/assets/logo.svg" alt="Noderunners FM"></a>
+    </div>
+    <nav class="socials" aria-label="Social links" data-i18n-attr="aria-label:topSocialLinks">
+      <a href="https://t.me/noderunnersradio" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.6l-3.32 15.66c-.25 1.1-.9 1.38-1.83.86l-5.05-3.72-2.44 2.35c-.27.27-.5.5-1.02.5l.36-5.14 9.36-8.46c.4-.36-.09-.56-.63-.2L5.16 13.4.18 11.84c-1.08-.34-1.1-1.08.23-1.6L20.54 3.03c.9-.34 1.69.2 1.4 1.57z"/></svg></a>
+      <a href="https://github.com/LightningJukeboxBot/LightningJukeboxBot" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58l-.01-2.05c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg></a>
+      <a href="https://x.com/NoderunnersFM" target="_blank" rel="noopener" aria-label="X" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.46l8.6-9.83L0 1.15h7.6l5.24 6.93 6.06-6.93zm-1.29 19.5h2.04L6.48 3.24H4.29L17.61 20.65z"/></svg></a>
+    </nav>
+  </header>
+  <nav class="mainmenu" aria-label="Site menu" data-i18n-attr="aria-label:topSiteMenu">
+    <a href="/" data-i18n="topMenuHome">Home</a>
+    <a href="/progress" data-i18n="topMenuProgress">Progress</a>
+    <a href="/dj-handbook" data-i18n="topMenuDjGuide">Guest DJ Guide</a>
+    <a href="/manifesto" data-i18n="topMenuManifesto">Manifesto</a>
+    <a href="/roadmap" class="active" data-i18n="topMenuRoadmap">Roadmap</a>
+    <span class="nrMenuEnd"><a href="/login" data-i18n="topMenuLogin">Log in</a><span class="nrLang" role="group" aria-label="Language"></span></span>
+  </nav>
+
+  <h1 data-i18n="topMenuRoadmap">Roadmap</h1>
+  <div class="sub" data-i18n="roadDiv1">Where the ship is sailing — splits, features, and the long game. Built in the open; dates are weather-dependent.</div>
+
+  <div class="card">
+    <h2 data-i18n="roadH21">How the sats split — live sessions</h2>
+    <p class="muted" data-i18n="roadP1">When a guest DJ is live, listener tips are shared between the DJ pool and the station. Here's exactly how — no mystery math. The radio's share walks DOWN as the studio gets rebuilt.</p>
+    <div class="ladder" style="margin-top:16px;">
+      <div class="tier now">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="roadDiv2"><span class="pill on">Now</span><span class="nm">Rebuild rate</span></div>
+          <div class="splitnums"><span class="r">75</span><span class="sep">/</span><span class="y">25</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 75 percent, DJs 25 percent" data-i18n-attr="aria-label:roadAttr1"><div class="seg-r" style="flex:75"></div><div class="seg-y" style="flex:25"></div></div>
+        <div class="tier-cap" data-i18n="roadDiv3">Studio's mid-repair — mains blown, gear half-apart. The bigger early cut is the bilge pump getting the ship seaworthy again.</div>
+      </div>
+      <div class="tier">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="roadDiv4"><span class="pill">Next</span><span class="nm">Refloating</span></div>
+          <div class="splitnums"><span class="r">69</span><span class="sep">/</span><span class="y">31</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 69 percent, DJs 31 percent" data-i18n-attr="aria-label:roadAttr2"><div class="seg-r" style="flex:69"></div><div class="seg-y" style="flex:31"></div></div>
+        <div class="tier-cap" data-i18n="roadDiv5">As the essentials come back online, the split steps toward the DJs.</div>
+      </div>
+      <div class="tier">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="roadDiv6"><span class="pill">Flying</span><span class="nm">Steady rate</span></div>
+          <div class="splitnums"><span class="r">60</span><span class="sep">/</span><span class="y">40</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 60 percent, DJs 40 percent" data-i18n-attr="aria-label:roadAttr3"><div class="seg-r" style="flex:60"></div><div class="seg-y" style="flex:40"></div></div>
+        <div class="tier-cap" data-i18n="roadDiv7">The shipshape rate once we're refloated — the crew's long-haul cut.</div>
+      </div>
+      <div class="tier">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="roadDiv8"><span class="pill">Endgame</span><span class="nm">The Pareto flip</span></div>
+          <div class="splitnums"><span class="r">21</span><span class="sep">/</span><span class="y">79</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 21 percent, DJs 79 percent" data-i18n-attr="aria-label:roadAttr4"><div class="seg-r" style="flex:21"></div><div class="seg-y" style="flex:79"></div></div>
+        <div class="tier-cap" data-i18n-html="roadDiv9">When the station goes pro — a true FM/AM broadcaster, quietly carrying the Bitcoin network's heartbeat — the ladder flips: 21% keeps the lights on, 79% to the DJs. That's the whole point of the climb. (Full story in the <a href="/manifesto">manifesto</a>.)</div>
+      </div>
+    </div>
+    <div class="legend" data-i18n-html="roadDiv10"><span><i class="sw r"></i> station's share</span><span><i class="sw y"></i> DJ share</span></div>
+    <div class="why">
+      <span class="eyebrow" data-i18n="roadSpan1">Straight with you</span>
+      <p data-i18n-html="roadP2">Our ship, recently named <span class="shipname">"The Dread Node"</span>, has been crewed by a few rag-tag plebs these past years, proper Noderunners, one and all! However, right now she's taking on water — main speakers blown, studio half-apart. The good news: we keep on keeping on! The bigger early cut isn't a house tax, it's a bilge pump that will help us bootstrap from the wreckage of the first iteration of this project. It steps <em>down</em> in the DJs' favour as we refloat, and the station's real living is meant to come from the music catalogue over time — not from skimming live performers, nor musicians in general! The goal is everyone flying, not just the captain.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="roadH22">The jukebox's ladder</h2>
+    <ul>
+      <li data-i18n-html="roadLi1" data-price-len="roadLi1Len"><b>Today:</b> the 21-sat request fee is purely anti-spam — it keeps the queue honest and the station's gear running.</li>
+      <li data-i18n-html="roadLi2"><b>In progress:</b> direct value-for-value — request a track, and the lion's share (79%) goes straight to the original artists via Lightning. The plumbing is built; the final connection to the artist-payout network is being wired.</li>
+      <li data-i18n-html="roadLi3"><b>Always:</b> the background playlist stays properly licensed — the collecting societies get paid for every logged play.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="roadH23">Now / Next / Later</h2>
+    <ul>
+      <li data-i18n-html="roadLi4"><b>Now:</b> live sessions running in the open with automatic honest payouts · DJ quarters with self-custody payouts · transparency pages like this one.</li>
+      <li data-i18n-html="roadLi5"><b>Next:</b> hosts &amp; a session calendar (any DJ can raise their hand to host) · DJ &amp; host stat pages · an honest rotating counter · the artist-payout lane.</li>
+      <li data-i18n-html="roadLi6"><b>Later:</b> the pro era — real broadcast dreams (FM/AM), paid live effects for the crowd, an installable app.</li>
+    </ul>
+  </div>
+
+  <p class="muted" data-i18n-html="roadP3">Every claim here is meant to survive a fact-check — the details live in <a href="/manifesto">the manifesto</a>, the past in <a href="/progress">the progress log</a>, the money in <a href="/funding">the honest sats log</a>.</p>
+<div class="nrEnCounts" data-i18n="englishCounts" hidden style="margin:18px 0 0;font-size:0.72rem;">Translated from English. If anything differs, the English text counts.</div>
+</div>
+<script>
+  // nr_i18n (2026-09-11, SF: six languages on all his sites). ONE page, one dictionary per language,
+  // English fallback. ?lang=xx for this view; a TAP on the switch also remembers it (localStorage nrLang).
+  // Never a reload: an open Lightning invoice must survive a language change. An English page is never
+  // rewritten -- the markup already says it. See plan/radio_i18n_runtime.py.
+  (function(){
+    var LANGS = ["en", "nl", "de", "fr", "es", "pt"];
+    var NAMES = {"en": "English", "nl": "Nederlands", "de": "Deutsch", "fr": "Français", "es": "Español", "pt": "Português"};
+    var LOCALES = {"en": "en-US", "nl": "nl-NL", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "pt": "pt-PT"};
+    var FLAGS = {"en": "<svg viewBox=\"0 0 60 30\" preserveAspectRatio=\"xMidYMid slice\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><clipPath id=\"nrGbS\"><path d=\"M0,0 v30 h60 v-30 z\"/><\/clipPath><clipPath id=\"nrGbT\"><path d=\"M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z\"/><\/clipPath><g clip-path=\"url(#nrGbS)\"><path d=\"M0,0 v30 h60 v-30 z\" fill=\"#012169\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" stroke=\"#FFF\" stroke-width=\"6\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" clip-path=\"url(#nrGbT)\" stroke=\"#C8102E\" stroke-width=\"4\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#FFF\" stroke-width=\"10\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#C8102E\" stroke-width=\"6\"/><\/g><\/svg>", "nl": "<svg viewBox=\"0 0 9 6\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AE1C28\" d=\"M0 0h9v2H0z\"/><path fill=\"#FFF\" d=\"M0 2h9v2H0z\"/><path fill=\"#21468B\" d=\"M0 4h9v2H0z\"/><\/svg>", "de": "<svg viewBox=\"0 0 5 3\" preserveAspectRatio=\"none\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#000\" d=\"M0 0h5v1H0z\"/><path fill=\"#DD0000\" d=\"M0 1h5v1H0z\"/><path fill=\"#FFCE00\" d=\"M0 2h5v1H0z\"/><\/svg>", "fr": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#002395\" d=\"M0 0h1v2H0z\"/><path fill=\"#FFF\" d=\"M1 0h1v2H1z\"/><path fill=\"#ED2939\" d=\"M2 0h1v2H2z\"/><\/svg>", "es": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AA151B\" d=\"M0 0h3v2H0z\"/><path fill=\"#F1BF00\" d=\"M0 .5h3v1H0z\"/><\/svg>", "pt": "<svg viewBox=\"0 0 30 20\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#006600\" d=\"M0 0h12v20H0z\"/><path fill=\"#FF0000\" d=\"M12 0h18v20H12z\"/><circle cx=\"12\" cy=\"10\" r=\"4.2\" fill=\"#FFCC00\"/><\/svg>"};
+    var I18N = {
+      "en": {"playBadgeOffline": "offline", "roadH23": "Now / Next / Later", "roadDiv2": "<span class=\"pill on\">Now<\/span><span class=\"nm\">Rebuild rate<\/span>", "roadSpan1": "Straight with you", "roadH22": "The jukebox's ladder", "roadAttr4": "Radio 21 percent, DJs 79 percent", "roadTitle": "Roadmap — Noderunners Radio", "roadP3": "Every claim here is meant to survive a fact-check — the details live in <a href=\"/manifesto\">the manifesto<\/a>, the past in <a href=\"/progress\">the progress log<\/a>, the money in <a href=\"/funding\">the honest sats log<\/a>.", "roadDiv5": "As the essentials come back online, the split steps toward the DJs.", "topMenuHome": "Home", "roadLi6": "<b>Later:<\/b> the pro era — real broadcast dreams (FM/AM), paid live effects for the crowd, an installable app.", "roadDiv1": "Where the ship is sailing — splits, features, and the long game. Built in the open; dates are weather-dependent.", "roadAttr1": "Radio 75 percent, DJs 25 percent", "roadLi3": "<b>Always:<\/b> the background playlist stays properly licensed — the collecting societies get paid for every logged play.", "playBadgeLive": "live", "topMenuDjGuide": "Guest DJ Guide", "roadDiv6": "<span class=\"pill\">Flying<\/span><span class=\"nm\">Steady rate<\/span>", "roadP1": "When a guest DJ is live, listener tips are shared between the DJ pool and the station. Here's exactly how — no mystery math. The radio's share walks DOWN as the studio gets rebuilt.", "topMenuManifesto": "Manifesto", "roadDiv4": "<span class=\"pill\">Next<\/span><span class=\"nm\">Refloating<\/span>", "topMenuLogin": "Log in", "roadLi5": "<b>Next:<\/b> hosts &amp; a session calendar (any DJ can raise their hand to host) · DJ &amp; host stat pages · an honest rotating counter · the artist-payout lane.", "langLabel": "Language", "topMenuProgress": "Progress", "roadDiv8": "<span class=\"pill\">Endgame<\/span><span class=\"nm\">The Pareto flip<\/span>", "topCoords": "broadcasting from international waters", "roadP2": "Our ship, recently named <span class=\"shipname\">\"The Dread Node\"<\/span>, has been crewed by a few rag-tag plebs these past years, proper Noderunners, one and all! However, right now she's taking on water — main speakers blown, studio half-apart. The good news: we keep on keeping on! The bigger early cut isn't a house tax, it's a bilge pump that will help us bootstrap from the wreckage of the first iteration of this project. It steps <em>down<\/em> in the DJs' favour as we refloat, and the station's real living is meant to come from the music catalogue over time — not from skimming live performers, nor musicians in general! The goal is everyone flying, not just the captain.", "roadAttr2": "Radio 69 percent, DJs 31 percent", "roadDiv10": "<span><i class=\"sw r\"><\/i> station's share<\/span><span><i class=\"sw y\"><\/i> DJ share<\/span>", "englishCounts": "Translated from English. If anything differs, the English text counts.", "topSocialLinks": "Social links", "roadDiv9": "When the station goes pro — a true FM/AM broadcaster, quietly carrying the Bitcoin network's heartbeat — the ladder flips: 21% keeps the lights on, 79% to the DJs. That's the whole point of the climb. (Full story in the <a href=\"/manifesto\">manifesto<\/a>.)", "roadDiv7": "The shipshape rate once we're refloated — the crew's long-haul cut.", "roadLi4": "<b>Now:<\/b> live sessions running in the open with automatic honest payouts · DJ quarters with self-custody payouts · transparency pages like this one.", "topMenuRoadmap": "Roadmap", "roadDiv3": "Studio's mid-repair — mains blown, gear half-apart. The bigger early cut is the bilge pump getting the ship seaworthy again.", "topSiteMenu": "Site menu", "roadLi1": "<b>Today:<\/b> the 21-sat request fee is purely anti-spam — it keeps the queue honest and the station's gear running.", "roadH21": "How the sats split — live sessions", "roadAttr3": "Radio 60 percent, DJs 40 percent", "roadLi2": "<b>In progress:<\/b> direct value-for-value — request a track, and the lion's share (79%) goes straight to the original artists via Lightning. The plumbing is built; the final connection to the artist-payout network is being wired.", "roadLi1Len": "<b>Today:<\/b> the request fee — 21 sats, a little more for a long song — is purely anti-spam — it keeps the queue honest and the station's gear running."},
+      "nl": {"roadTitle": "Roadmap — Noderunners Radio", "roadDiv1": "Waar het schip naartoe vaart — verdelingen, features en de lange termijn. Openlijk gebouwd; datums hangen af van het weer.", "roadH21": "Hoe de sats verdeeld worden — live sessies", "roadP1": "Als er een gast-DJ live is, worden de tips van luisteraars gedeeld tussen de DJ-pool en het station. Zo gaat het precies — geen vage rekensommen. Het deel van de radio loopt OMLAAG naarmate de studio wordt herbouwd.", "roadDiv2": "<span class=\"pill on\">Nu<\/span><span class=\"nm\">Herbouwtarief<\/span>", "roadAttr1": "Radio 75 procent, DJ's 25 procent", "roadDiv3": "Studio in reparatie — hoofdspeakers opgeblazen, apparatuur half uit elkaar. Het grotere deel in het begin is de lenspomp die het schip weer zeewaardig maakt.", "roadDiv4": "<span class=\"pill\">Straks<\/span><span class=\"nm\">Vlottrekken<\/span>", "roadAttr2": "Radio 69 procent, DJ's 31 procent", "roadDiv5": "Naarmate de belangrijkste dingen weer werken, schuift de verdeling richting de DJ's.", "roadDiv6": "<span class=\"pill\">Op koers<\/span><span class=\"nm\">Vast tarief<\/span>", "roadAttr3": "Radio 60 procent, DJ's 40 procent", "roadDiv7": "Het piekfijne tarief zodra we weer vlot liggen — het deel van de crew voor de lange reis.", "roadDiv8": "<span class=\"pill\">Eindspel<\/span><span class=\"nm\">De Pareto-flip<\/span>", "roadAttr4": "Radio 21 procent, DJ's 79 procent", "roadDiv9": "Als het station pro gaat — een echte FM/AM-zender, die stilletjes de hartslag van het Bitcoin-netwerk meedraagt — dan klapt de ladder om: 21% houdt het licht aan, 79% naar de DJ's. Daar draait de hele klim om. (Het volledige verhaal staat in het <a href=\"/manifesto\">manifest<\/a>.)", "roadDiv10": "<span><i class=\"sw r\"><\/i> deel van het station<\/span><span><i class=\"sw y\"><\/i> DJ-deel<\/span>", "roadSpan1": "Eerlijk is eerlijk", "roadP2": "Ons schip, sinds kort <span class=\"shipname\">\"The Dread Node\"<\/span> gedoopt, is de afgelopen jaren bemand door een zootje ongeregelde plebs, echte Noderunners, stuk voor stuk! Maar op dit moment maakt ze water — hoofdspeakers opgeblazen, studio half uit elkaar. Het goede nieuws: we gaan gewoon door! Het grotere deel in het begin is geen afdracht aan het huis, het is een lenspomp die ons helpt op te krabbelen uit het wrak van de eerste versie van dit project. Het stapt <em>omlaag<\/em> in het voordeel van de DJ's naarmate we weer vlot komen, en het echte levensonderhoud van het station hoort op den duur uit de muziekcatalogus te komen — niet uit het afromen van live-artiesten, en ook niet van muzikanten in het algemeen! Het doel is dat iedereen op volle zeilen vaart, niet alleen de kapitein.", "roadH22": "De ladder van de jukebox", "roadLi1": "<b>Vandaag:<\/b> de 21 sats per verzoekje zijn puur anti-spam — ze houden de wachtrij eerlijk en de apparatuur van het station draaiende.", "roadLi2": "<b>In aanbouw:<\/b> direct value-for-value — vraag een nummer aan, en het leeuwendeel (79%) gaat via Lightning rechtstreeks naar de oorspronkelijke artiesten. Het leidingwerk ligt er; de laatste aansluiting op het uitbetalingsnetwerk voor artiesten wordt nu aangelegd.", "roadLi3": "<b>Altijd:<\/b> de achtergrondplaylist blijft netjes onder licentie — de beheersorganisaties worden betaald voor elk gelogd nummer.", "roadH23": "Nu / Straks / Later", "roadLi4": "<b>Nu:<\/b> live sessies die openlijk draaien, met automatische, eerlijke uitbetalingen · DJ-hutten met self-custody-uitbetalingen · transparantiepagina's zoals deze.", "roadLi5": "<b>Straks:<\/b> hosts &amp; een sessiekalender (elke DJ kan zijn hand opsteken om te hosten) · statistiekpagina's voor DJ's &amp; hosts · een eerlijke roterende teller · de uitbetaalroute voor artiesten.", "roadLi6": "<b>Later:<\/b> het pro-tijdperk — echte zenderdromen (FM/AM), betaalde live effecten voor het publiek, een installeerbare app.", "roadP3": "Elke bewering hier hoort een factcheck te overleven — de details staan in <a href=\"/manifesto\">het manifest<\/a>, het verleden in <a href=\"/progress\">het voortgangslogboek<\/a>, het geld in <a href=\"/funding\">het eerlijke sats-logboek<\/a>.", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Inloggen", "topSiteMenu": "Sitemenu", "langLabel": "Taal", "topMenuProgress": "Voortgang", "topMenuDjGuide": "Gast-DJ-gids", "englishCounts": "Vertaald uit het Engels. Wijkt er iets af, dan geldt de Engelse tekst.", "topCoords": "zendt uit vanuit internationale wateren", "playBadgeLive": "live", "topSocialLinks": "Sociale media", "topMenuHome": "Home", "roadLi1Len": "<b>Vandaag:<\/b> de sats per verzoekje — 21, iets meer voor een lang nummer — zijn puur anti-spam — ze houden de wachtrij eerlijk en de apparatuur van het station draaiende."},
+      "de": {"roadTitle": "Roadmap — Noderunners Radio", "roadDiv1": "Wohin das Schiff segelt — Aufteilungen, Funktionen und der Kurs auf lange Sicht. Offen gebaut; Termine hängen vom Wetter ab.", "roadH21": "So werden die sats aufgeteilt — Live-Sessions", "roadP1": "Wenn ein Gast-DJ live ist, wird das Trinkgeld der Hörer zwischen dem DJ-Pool und dem Sender geteilt. Hier steht genau, wie — keine mysteriöse Mathematik. Der Anteil des Radios geht RUNTER, während das Studio wieder aufgebaut wird.", "roadDiv2": "<span class=\"pill on\">Jetzt<\/span><span class=\"nm\">Wiederaufbau-Satz<\/span>", "roadAttr1": "Radio 75 Prozent, DJs 25 Prozent", "roadDiv3": "Das Studio ist mitten in der Reparatur — Hauptlautsprecher durchgebrannt, Technik halb zerlegt. Der größere frühe Anteil ist die Bilgepumpe, die das Schiff wieder seetüchtig macht.", "roadDiv4": "<span class=\"pill\">Danach<\/span><span class=\"nm\">Wieder flott<\/span>", "roadAttr2": "Radio 69 Prozent, DJs 31 Prozent", "roadDiv5": "Sobald das Wichtigste wieder läuft, verschiebt sich die Aufteilung zu den DJs hin.", "roadDiv6": "<span class=\"pill\">In Fahrt<\/span><span class=\"nm\">Fester Satz<\/span>", "roadAttr3": "Radio 60 Prozent, DJs 40 Prozent", "roadDiv7": "Der Satz für ein Schiff in Schuss, sobald wir wieder flott sind — der Anteil der Crew für die lange Fahrt.", "roadDiv8": "<span class=\"pill\">Endziel<\/span><span class=\"nm\">Der Pareto-Flip<\/span>", "roadAttr4": "Radio 21 Prozent, DJs 79 Prozent", "roadDiv9": "Wenn der Sender professionell wird — ein echter FM/AM-Sender, der still den Herzschlag des Bitcoin-Netzwerks mitträgt —, kippt die Leiter: 21% lassen das Licht brennen, 79% an die DJs. Genau darum geht es beim ganzen Aufstieg. (Die ganze Geschichte steht im <a href=\"/manifesto\">Manifest<\/a>.)", "roadDiv10": "<span><i class=\"sw r\"><\/i> Anteil des Senders<\/span><span><i class=\"sw y\"><\/i> DJ-Anteil<\/span>", "roadSpan1": "Ganz ehrlich", "roadP2": "Unser Schiff, vor Kurzem auf den Namen <span class=\"shipname\">„The Dread Node“<\/span> getauft, wurde in den letzten Jahren von ein paar zusammengewürfelten Plebs bemannt, echte Noderunners, allesamt! Gerade aber nimmt es Wasser auf — Hauptlautsprecher durchgebrannt, Studio halb zerlegt. Die gute Nachricht: Wir machen einfach weiter! Der größere frühe Anteil ist keine Haussteuer, sondern eine Bilgepumpe, die uns hilft, uns aus dem Wrack der ersten Version dieses Projekts wieder hochzuarbeiten. Er <em>sinkt<\/em> Stufe für Stufe zugunsten der DJs, während wir wieder flott werden, und der eigentliche Lebensunterhalt des Senders soll mit der Zeit aus dem Musikkatalog kommen — nicht vom Abschöpfen bei Live-Künstlern, und auch nicht bei Musikern allgemein! Das Ziel ist, dass alle in Fahrt kommen, nicht nur der Kapitän.", "roadH22": "Die Leiter der Jukebox", "roadLi1": "<b>Heute:<\/b> Die Wunschgebühr von 21 sats ist rein Anti-Spam — sie hält die Warteliste ehrlich und die Technik des Senders am Laufen.", "roadLi2": "<b>In Arbeit:<\/b> direktes Value-for-Value — wünsch dir einen Track, und der Löwenanteil (79%) geht per Lightning direkt an die Originalkünstler. Die Leitungen sind gebaut; der letzte Anschluss an das Auszahlungsnetz für Künstler wird gerade verkabelt.", "roadLi3": "<b>Immer:<\/b> Die Hintergrund-Playlist bleibt ordentlich lizenziert — die Verwertungsgesellschaften werden für jede protokollierte Wiedergabe bezahlt.", "roadH23": "Jetzt / Als Nächstes / Später", "roadLi4": "<b>Jetzt:<\/b> Live-Sessions, die offen laufen, mit automatischen, ehrlichen Auszahlungen · DJ-Kajüten mit Auszahlungen in Selbstverwahrung · Transparenzseiten wie diese hier.", "roadLi5": "<b>Als Nächstes:<\/b> Hosts &amp; ein Session-Kalender (jeder DJ kann sich melden, um zu hosten) · Statistikseiten für DJs &amp; Hosts · ein ehrlicher rotierender Zähler · die Auszahlungsspur für Künstler.", "roadLi6": "<b>Später:<\/b> die Profi-Ära — echte Sendeträume (FM/AM), bezahlte Live-Effekte fürs Publikum, eine installierbare App.", "roadP3": "Jede Aussage hier soll einem Faktencheck standhalten — die Details stehen im <a href=\"/manifesto\">Manifest<\/a>, die Vergangenheit im <a href=\"/progress\">Fortschrittslog<\/a>, das Geld im <a href=\"/funding\">ehrlichen Logbuch aller sats<\/a>.", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Anmelden", "topSiteMenu": "Hauptmenü", "langLabel": "Sprache", "topMenuProgress": "Fortschritt", "topMenuDjGuide": "Gast-DJ-Guide", "englishCounts": "Aus dem Englischen übersetzt. Bei Abweichungen gilt der englische Text.", "topCoords": "sendet aus internationalen Gewässern", "playBadgeLive": "live", "topSocialLinks": "Social-Media-Links", "topMenuHome": "Start", "roadLi1Len": "<b>Heute:<\/b> Die Wunschgebühr — 21 sats, etwas mehr für einen langen Song — ist rein Anti-Spam — sie hält die Warteliste ehrlich und die Technik des Senders am Laufen."},
+      "fr": {"roadTitle": "Roadmap — Noderunners Radio", "roadDiv1": "Le cap du navire — partages, fonctionnalités et vision à long terme. Construit au grand jour ; les dates dépendent de la météo.", "roadH21": "Comment les sats sont partagés — sessions en direct", "roadP1": "Quand un DJ invité est en direct, les dons des auditeurs sont partagés entre le pot commun des DJ et la station. Voici exactement comment — pas de calculs mystérieux. La part de la radio DESCEND à mesure que le studio se reconstruit.", "roadDiv2": "<span class=\"pill on\">Maintenant<\/span><span class=\"nm\">Taux de reconstruction<\/span>", "roadAttr1": "Radio 75 pour cent, DJ 25 pour cent", "roadDiv3": "Le studio est en pleine réparation — enceintes principales grillées, matériel à moitié démonté. La part plus élevée du début, c’est la pompe de cale qui remet le navire en état de naviguer.", "roadDiv4": "<span class=\"pill\">Ensuite<\/span><span class=\"nm\">Renflouage<\/span>", "roadAttr2": "Radio 69 pour cent, DJ 31 pour cent", "roadDiv5": "À mesure que l’essentiel revient en service, le partage se déplace vers les DJ.", "roadDiv6": "<span class=\"pill\">En croisière<\/span><span class=\"nm\">Taux stable<\/span>", "roadAttr3": "Radio 60 pour cent, DJ 40 pour cent", "roadDiv7": "Le taux du navire bien paré, une fois renfloué — la part de l’équipage au long cours.", "roadDiv8": "<span class=\"pill\">À terme<\/span><span class=\"nm\">La bascule de Pareto<\/span>", "roadAttr4": "Radio 21 pour cent, DJ 79 pour cent", "roadDiv9": "Quand la station passera pro — un vrai diffuseur FM/AM, qui porte discrètement le battement de cœur du réseau Bitcoin — l’échelle basculera : 21 % gardent la lumière allumée, 79 % vont aux DJ. C’est tout le sens de la montée. (Toute l’histoire dans le <a href=\"/manifesto\">manifeste<\/a>.)", "roadDiv10": "<span><i class=\"sw r\"><\/i> part de la station<\/span><span><i class=\"sw y\"><\/i> part des DJ<\/span>", "roadSpan1": "Cartes sur table", "roadP2": "Notre navire, récemment baptisé <span class=\"shipname\">« The Dread Node »<\/span>, a été mené ces dernières années par une poignée de plebs hétéroclites, de vrais Noderunners, tous autant qu’ils sont ! Mais en ce moment, il prend l’eau — enceintes principales grillées, studio à moitié démonté. La bonne nouvelle : on continue, coûte que coûte ! La part plus élevée du début n’est pas une taxe maison, c’est une pompe de cale qui va nous aider à repartir de l’épave de la première itération de ce projet. Elle <em>diminue<\/em> en faveur des DJ à mesure que nous renflouons, et le vrai gagne-pain de la station doit venir, avec le temps, du catalogue musical — pas de ponctions sur les artistes en direct, ni sur les musiciens en général ! Le but, c’est que tout le monde vogue, pas seulement le capitaine.", "roadH22": "L’échelle du jukebox", "roadLi1": "<b>Aujourd’hui :<\/b> les frais de demande de 21 sats servent uniquement d’anti-spam — ils gardent la file d’attente honnête et le matériel de la station en marche.", "roadLi2": "<b>En cours :<\/b> la valeur pour valeur directe — demandez un morceau, et la part du lion (79 %) va directement aux artistes d’origine via Lightning. La tuyauterie est construite ; le dernier raccordement au réseau de versement aux artistes est en cours de câblage.", "roadLi3": "<b>Toujours :<\/b> la playlist de fond reste correctement sous licence — les sociétés de gestion collective sont payées pour chaque diffusion consignée.", "roadH23": "Maintenant / Ensuite / Plus tard", "roadLi4": "<b>Maintenant :<\/b> des sessions en direct menées au grand jour, avec des versements automatiques et honnêtes · des quartiers DJ avec versements en auto-garde · des pages de transparence comme celle-ci.", "roadLi5": "<b>Ensuite :<\/b> des hôtes &amp; un calendrier des sessions (tout DJ peut lever la main pour animer) · des pages de statistiques DJ &amp; hôtes · un compteur tournant honnête · la voie de versement aux artistes.", "roadLi6": "<b>Plus tard :<\/b> l’ère pro — de vrais rêves de diffusion (FM/AM), des effets en direct payants pour le public, une application installable.", "roadP3": "Chaque affirmation ici doit résister à une vérification des faits — les détails sont dans <a href=\"/manifesto\">le manifeste<\/a>, le passé dans <a href=\"/progress\">le journal d’avancement<\/a>, l’argent dans <a href=\"/funding\">le journal honnête des sats<\/a>.", "topMenuManifesto": "Manifeste", "playBadgeOffline": "hors ligne", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Connexion", "topSiteMenu": "Menu du site", "langLabel": "Langue", "topMenuProgress": "Avancement", "topMenuDjGuide": "Guide DJ invité", "englishCounts": "Traduit de l’anglais. En cas de différence, le texte anglais fait foi.", "topCoords": "on émet depuis les eaux internationales", "playBadgeLive": "direct", "topSocialLinks": "Réseaux sociaux", "topMenuHome": "Accueil", "roadLi1Len": "<b>Aujourd’hui :<\/b> les frais de demande — 21 sats, un peu plus pour un long morceau — servent uniquement d’anti-spam — ils gardent la file d’attente honnête et le matériel de la station en marche."},
+      "es": {"roadTitle": "Hoja de ruta — Noderunners Radio", "roadDiv1": "Hacia dónde navega el barco — repartos, funciones y la visión a largo plazo. Construido a la vista de todos; las fechas dependen del tiempo que haga.", "roadH21": "Cómo se reparten los sats — sesiones en directo", "roadP1": "Cuando un DJ invitado está en directo, las propinas de los oyentes se reparten entre el bote de los DJs y la emisora. Así es exactamente — sin cuentas misteriosas. La parte de la radio va BAJANDO a medida que se reconstruye el estudio.", "roadDiv2": "<span class=\"pill on\">Ahora<\/span><span class=\"nm\">Reparto de reconstrucción<\/span>", "roadAttr1": "Radio 75 por ciento, DJs 25 por ciento", "roadDiv3": "El estudio está a medio reparar — altavoces principales reventados, material medio desmontado. La parte más grande del principio es la bomba de achique que vuelve a poner el barco en condiciones de navegar.", "roadDiv4": "<span class=\"pill\">Siguiente<\/span><span class=\"nm\">Reflotando<\/span>", "roadAttr2": "Radio 69 por ciento, DJs 31 por ciento", "roadDiv5": "A medida que lo esencial vuelve a funcionar, el reparto da un paso hacia los DJs.", "roadDiv6": "<span class=\"pill\">A toda vela<\/span><span class=\"nm\">Reparto estable<\/span>", "roadAttr3": "Radio 60 por ciento, DJs 40 por ciento", "roadDiv7": "El reparto con el barco en orden, una vez reflotados — la parte de la tripulación para la travesía larga.", "roadDiv8": "<span class=\"pill\">Destino<\/span><span class=\"nm\">El giro de Pareto<\/span>", "roadAttr4": "Radio 21 por ciento, DJs 79 por ciento", "roadDiv9": "Cuando la emisora se haga profesional — una auténtica emisora de FM/AM, que lleve discretamente el latido de la red Bitcoin — la escalera se invierte: el 21% mantiene las luces encendidas, el 79% va a los DJs. Ese es todo el sentido de la subida. (La historia completa, en el <a href=\"/manifesto\">manifiesto<\/a>.)", "roadDiv10": "<span><i class=\"sw r\"><\/i> parte de la emisora<\/span><span><i class=\"sw y\"><\/i> parte de los DJs<\/span>", "roadSpan1": "Sin rodeos contigo", "roadP2": "Nuestro barco, bautizado hace poco como <span class=\"shipname\">\"The Dread Node\"<\/span>, ha tenido estos últimos años una tripulación de unos cuantos plebs variopintos, ¡auténticos Noderunners, todos y cada uno! Pero ahora mismo está haciendo agua — altavoces principales reventados, estudio medio desmontado. La buena noticia: ¡seguimos adelante sin rendirnos! La parte más grande del principio no es un impuesto de la casa, es una bomba de achique que nos ayudará a arrancar desde los restos de la primera versión de este proyecto. Va <em>bajando<\/em> a favor de los DJs a medida que reflotamos, y el verdadero sustento de la emisora debe venir, con el tiempo, del catálogo musical — ¡no de quedarse una tajada de los artistas en directo, ni de los músicos en general! El objetivo es que todos vayamos a toda vela, no solo el capitán.", "roadH22": "La escalera de la jukebox", "roadLi1": "<b>Hoy:<\/b> la tarifa de 21 sats por petición es solo antispam — mantiene la cola honesta y el material de la emisora funcionando.", "roadLi2": "<b>En marcha:<\/b> valor por valor directo — pide un tema y la parte del león (79%) va directa a los artistas originales vía Lightning. Las tuberías ya están hechas; se está cableando la conexión final con la red de pagos a artistas.", "roadLi3": "<b>Siempre:<\/b> la lista de fondo sigue con su licencia en regla — las entidades de gestión cobran por cada reproducción registrada.", "roadH23": "Ahora / Siguiente / Más adelante", "roadLi4": "<b>Ahora:<\/b> sesiones en directo a la vista de todos, con pagos automáticos y honestos · camarotes de DJ con pagos en autocustodia · páginas de transparencia como esta.", "roadLi5": "<b>Siguiente:<\/b> anfitriones &amp; un calendario de sesiones (cualquier DJ puede levantar la mano para ser anfitrión) · páginas de estadísticas de DJ &amp; anfitrión · un contador rotativo honesto · el carril de pagos a artistas.", "roadLi6": "<b>Más adelante:<\/b> la era profesional — sueños de emisión de verdad (FM/AM), efectos en directo que el público puede activar con sats, una app instalable.", "roadP3": "Cada afirmación de aquí está pensada para sobrevivir a una verificación — los detalles están en <a href=\"/manifesto\">el manifiesto<\/a>, el pasado en <a href=\"/progress\">el diario de progreso<\/a>, el dinero en <a href=\"/funding\">el registro honesto de sats<\/a>.", "topMenuManifesto": "Manifiesto", "playBadgeOffline": "desconectado", "topMenuRoadmap": "Hoja de ruta", "topMenuLogin": "Entrar", "topSiteMenu": "Menú del sitio", "langLabel": "Idioma", "topMenuProgress": "Progreso", "topMenuDjGuide": "Guía para DJs", "englishCounts": "Traducido del inglés. Si algo difiere, prevalece el texto en inglés.", "topCoords": "emitiendo desde aguas internacionales", "playBadgeLive": "directo", "topSocialLinks": "Redes sociales", "topMenuHome": "Inicio", "roadLi1Len": "<b>Hoy:<\/b> la tarifa por petición — 21 sats, algo más si la canción es larga — es solo antispam — mantiene la cola honesta y el material de la emisora funcionando."},
+      "pt": {"roadTitle": "Roteiro — Noderunners Radio", "roadDiv1": "Para onde o navio está a navegar — divisões, funcionalidades e o jogo a longo prazo. Construído à vista de todos; as datas dependem do tempo que fizer.", "roadH21": "Como se dividem os sats — sessões ao vivo", "roadP1": "Quando um DJ convidado está em direto, as gorjetas dos ouvintes são partilhadas entre o fundo comum dos DJs e a rádio. Eis exatamente como — sem matemática misteriosa. A parte da rádio DESCE à medida que o estúdio é reconstruído.", "roadDiv2": "<span class=\"pill on\">Agora<\/span><span class=\"nm\">Taxa de reconstrução<\/span>", "roadAttr1": "Rádio 75 por cento, DJs 25 por cento", "roadDiv3": "O estúdio está a meio da reparação — colunas principais rebentadas, equipamento meio desmontado. A fatia maior do início é a bomba de porão que volta a pôr o navio em condições de navegar.", "roadDiv4": "<span class=\"pill\">A seguir<\/span><span class=\"nm\">A reflutuar<\/span>", "roadAttr2": "Rádio 69 por cento, DJs 31 por cento", "roadDiv5": "À medida que o essencial volta a funcionar, a divisão avança na direção dos DJs.", "roadDiv6": "<span class=\"pill\">A todo o pano<\/span><span class=\"nm\">Taxa estável<\/span>", "roadAttr3": "Rádio 60 por cento, DJs 40 por cento", "roadDiv7": "A taxa de navio em ordem, depois de voltarmos a flutuar — a parte da tripulação para a longa viagem.", "roadDiv8": "<span class=\"pill\">Destino final<\/span><span class=\"nm\">A inversão de Pareto<\/span>", "roadAttr4": "Rádio 21 por cento, DJs 79 por cento", "roadDiv9": "Quando a rádio se profissionalizar — uma verdadeira emissora FM/AM, a transportar discretamente o batimento cardíaco da rede Bitcoin — a escada inverte-se: 21% mantém as luzes acesas, 79% para os DJs. É esse o objetivo da subida toda. (A história completa está no <a href=\"/manifesto\">manifesto<\/a>.)", "roadDiv10": "<span><i class=\"sw r\"><\/i> parte da rádio<\/span><span><i class=\"sw y\"><\/i> parte dos DJs<\/span>", "roadSpan1": "Com toda a franqueza", "roadP2": "O nosso navio, recentemente batizado <span class=\"shipname\">\"The Dread Node\"<\/span>, tem sido tripulado nestes últimos anos por um bando desalinhado de plebs, verdadeiros Noderunners, todos eles! Mas neste momento está a meter água — colunas principais rebentadas, estúdio meio desmontado. A boa notícia: continuamos a seguir em frente! A fatia maior do início não é um imposto da casa, é uma bomba de porão que nos vai ajudar a arrancar dos destroços da primeira versão deste projeto. Ela <em>desce<\/em> a favor dos DJs à medida que voltamos a flutuar, e o verdadeiro ganha-pão da rádio deverá vir, com o tempo, do catálogo musical — não de ficar com uma fatia dos artistas ao vivo, nem dos músicos em geral! O objetivo é irmos todos de vento em popa, não só o capitão.", "roadH22": "A escada da jukebox", "roadLi1": "<b>Hoje:<\/b> a taxa de 21 sats por pedido é puramente anti-spam — mantém a fila honesta e o equipamento da rádio a funcionar.", "roadLi2": "<b>Em curso:<\/b> valor por valor direto — peça uma faixa e a parte de leão (79%) vai diretamente para os artistas originais via Lightning. A canalização está construída; a ligação final à rede de pagamentos aos artistas está a ser montada.", "roadLi3": "<b>Sempre:<\/b> a playlist de fundo continua devidamente licenciada — as entidades de gestão coletiva são pagas por cada reprodução registada.", "roadH23": "Agora / A seguir / Mais tarde", "roadLi4": "<b>Agora:<\/b> sessões ao vivo à vista de todos, com pagamentos automáticos e honestos · camarotes de DJ com pagamentos em autocustódia · páginas de transparência como esta.", "roadLi5": "<b>A seguir:<\/b> anfitriões &amp; um calendário de sessões (qualquer DJ pode levantar a mão para ser anfitrião) · páginas de estatísticas de DJs &amp; anfitriões · um contador rotativo honesto · a via de pagamentos aos artistas.", "roadLi6": "<b>Mais tarde:<\/b> a era profissional — sonhos de emissão a sério (FM/AM), efeitos ao vivo pagos para o público, uma app instalável.", "roadP3": "Cada afirmação aqui foi feita para resistir a uma verificação de factos — os detalhes estão no <a href=\"/manifesto\">manifesto<\/a>, o passado no <a href=\"/progress\">registo de progresso<\/a>, o dinheiro no <a href=\"/funding\">registo honesto de sats<\/a>.", "topMenuManifesto": "Manifesto", "playBadgeOffline": "offline", "topMenuRoadmap": "Roteiro", "topMenuLogin": "Entrar", "topSiteMenu": "Menu do site", "langLabel": "Idioma", "topMenuProgress": "Progresso", "topMenuDjGuide": "Guia para DJs", "englishCounts": "Traduzido do inglês. Se algo for diferente, vale o texto em inglês.", "topCoords": "a emitir de águas internacionais", "playBadgeLive": "direto", "topSocialLinks": "Redes sociais", "topMenuHome": "Início", "roadLi1Len": "<b>Hoje:<\/b> a taxa por pedido — 21 sats, um pouco mais se a música for longa — é puramente anti-spam — mantém a fila honesta e o equipamento da rádio a funcionar."}
+    };
+    var LANG = 'en', hooks = [];
+    try {
+      var q = new URLSearchParams(location.search).get('lang');
+      var saved = null; try { saved = localStorage.getItem('nrLang'); } catch (e) {}
+      LANG = LANGS.indexOf(q) >= 0 ? q : (LANGS.indexOf(saved) >= 0 ? saved : 'en');
+    } catch (e) {}
+    function T(k) {
+      var d = I18N[LANG] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    // ONE pass with a function replacer: every slot is filled once, from the template only. A value (an
+    // artist, a title, a DJ name) is inserted literally -- a title that itself contains '{title}' or '$&'
+    // is never filled again or read as a pattern. (Slot-by-slot split/join got that wrong; scout B's
+    // equivalence tests caught it on 2026-09-11.)
+    function fill(s, map) {
+      return String(s).replace(/\{([A-Za-z0-9_]+)\}/g, function(m, k){
+        return Object.prototype.hasOwnProperty.call(map, k) ? String(map[k]) : m;
+      });
+    }
+    function each(sel, fn) { var n = document.querySelectorAll(sel); for (var i = 0; i < n.length; i++) fn(n[i]); }
+    function Tin(lang, k) {
+      var d = I18N[lang] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    var scratch = null;
+    function textOf(h) { scratch = scratch || document.createElement('div'); scratch.innerHTML = h; return scratch.textContent; }
+    function renderNav() {
+      var navs = document.querySelectorAll('.nrLang');
+      for (var n = 0; n < navs.length; n++) {
+        var nav = navs[n];
+        nav.setAttribute('aria-label', T('langLabel'));
+        // nr_langdd (2026-09-12, SF: "it takes up too much space"): ONE PILL with the current language; a tap opens
+        // the six rows under it (a native <details>: no script needed to open it). Every copy of the English flag
+        // gets its own clip-path ids: the nav number plus the row.
+        var flag = function(c, k){ return FLAGS[c].split('nrGb').join('nrGb' + n + k); };
+        var h = '<details class="nrDd"><summary lang="' + LANG + '" title="' + NAMES[LANG] + '">' + flag(LANG, 's') +
+                '<b>' + LANG.toUpperCase() + '</b><span class="nrCaret" aria-hidden="true">&#9662;</span></summary><div class="nrDdMenu">';
+        for (var i = 0; i < LANGS.length; i++) {
+          var c = LANGS[i], inner = flag(c, 'r' + i) + '<b>' + c.toUpperCase() + '</b><span class="nm">' + NAMES[c] + '</span>';
+          h += c === LANG
+            ? '<span class="cur" aria-current="true" lang="' + c + '" title="' + NAMES[c] + '">' + inner + '<span class="ck" aria-hidden="true">&#10003;</span></span>'
+            : '<a href="?lang=' + c + '" hreflang="' + c + '" lang="' + c + '" title="' + NAMES[c] + '" data-lang="' + c + '">' + inner + '</a>';
+        }
+        nav.innerHTML = h + '</div></details>';
+      }
+    }
+    // prev = the language the page shows right now. First load: 'en' (the markup). An English first load
+    // therefore rewrites nothing and runs no hooks. 'Soft' texts are defaults the page's own code
+    // overwrites with live state ('offline', 'connecting...'): they are replaced only while they still
+    // show the default, so a switch never clobbers live state -- that code writes its next update in the
+    // new language by itself. Hooks (nrI18nOnSwitch) redraw what code built, after every rewrite.
+    function applyLang(prev) {
+      document.documentElement.lang = LANG;
+      var rewrite = prev !== LANG;
+      if (rewrite) {
+        each('[data-i18n]', function(el){ el.textContent = T(el.getAttribute('data-i18n')); });
+        each('[data-i18n-html]', function(el){ el.innerHTML = T(el.getAttribute('data-i18n-html')); });
+        each('[data-i18n-attr]', function(el){
+          var parts = el.getAttribute('data-i18n-attr').split(';');
+          for (var i = 0; i < parts.length; i++) {
+            var j = parts[i].indexOf(':');
+            if (j > 0) el.setAttribute(parts[i].slice(0, j), T(parts[i].slice(j + 1)));
+          }
+        });
+        each('[data-i18n-soft]', function(el){
+          var k = el.getAttribute('data-i18n-soft');
+          if (el.textContent === Tin(prev, k)) el.textContent = T(k);
+        });
+        each('[data-i18n-soft-html]', function(el){
+          var k = el.getAttribute('data-i18n-soft-html');
+          if (el.textContent === textOf(Tin(prev, k))) el.innerHTML = T(k);
+        });
+      }
+      each('.nrEnCounts', function(el){ el.hidden = LANG === 'en'; });
+      renderNav();
+      if (rewrite) for (var h = 0; h < hooks.length; h++) { try { hooks[h](LANG, prev); } catch (e) {} }
+    }
+    function pickLang(c) {
+      if (LANGS.indexOf(c) < 0 || c === LANG) return;
+      var prev = LANG;
+      LANG = c;
+      try { localStorage.setItem('nrLang', c); } catch (e) {}
+      try {
+        var u = new URL(location.href);
+        if (c === 'en') u.searchParams.delete('lang'); else u.searchParams.set('lang', c);
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      } catch (e) {}
+      applyLang(prev);
+    }
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest ? e.target.closest('.nrLang a[data-lang]') : null;
+      if (!a) return;
+      e.preventDefault();
+      pickLang(a.getAttribute('data-lang'));
+    });
+    // nr_langdd: an open pill closes on a tap anywhere else, and on Escape (a pick re-renders it closed by itself)
+    document.addEventListener('click', function(e){
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) if (!open[i].contains(e.target)) open[i].removeAttribute('open');
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) open[i].removeAttribute('open');
+    });
+    window.T = T;
+    window.fill = fill;
+    window.nrLangNow = function(){ return LANG; };
+    window.nrLocale = function(){ return LOCALES[LANG]; };
+    window.nrI18nOnSwitch = function(fn){ if (typeof fn === 'function') hooks.push(fn); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ applyLang('en'); });
+    else applyLang('en');
+  })();
+</script>
+<script>
+(function(){
+  var b = document.getElementById('liveBadge'), t = document.getElementById('liveText');
+  if (!b) return;
+  function poll(){
+    fetch('/owncast-status', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      var on = !!(d && d.online === true);
+      b.classList.toggle('on', on);
+      t.textContent = on ? T('playBadgeLive') : T('playBadgeOffline');
+    }).catch(function(){});
+  }
+  poll(); setInterval(poll, 15000);
+})();
+</script>
+<script>
+  // nr_pricemode (2026-09-15, SF: "make it adaptive for however the toggle stands on the captain's console everywhere"):
+  // the price sentences follow the station's pricing switch. With length pricing on, every element marked
+  // data-price-len shows its "Len" text -- in the language of the moment, and after every language switch.
+  (function(){
+    fetch('/api/stats', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      if (!d || d.pricing !== 'length') return;
+      var els = document.querySelectorAll('[data-price-len]');
+      for (var i = 0; i < els.length; i++){
+        var el = els[i], k = el.getAttribute('data-price-len');
+        if (el.hasAttribute('data-i18n-html')){ el.setAttribute('data-i18n-html', k); if (window.T) el.innerHTML = T(k); }
+        else if (el.hasAttribute('data-i18n')){ el.setAttribute('data-i18n', k); if (window.T) el.textContent = T(k); }
+      }
+    }).catch(function(){});
+  })();
+</script>
+<script src="/assets/nr-edit.js" defer></script>
+</body>
+</html>

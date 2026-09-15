@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="fundTitle">The honest sats log — Noderunners Radio</title>
+<style>
+  :root{ --ether:#0a1a1f; --foam:#e6eff0; --foam-dim:#8aa4aa; --line:#1d3a42; --signal:#f7931a; }
+  * { box-sizing:border-box; }
+  html{ background:var(--ether); }
+  body{
+    background:transparent; color:var(--foam); margin:0; padding:0 20px 40px;
+    font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    line-height:1.6;
+  }
+  body::before{ content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:url("/assets/ship-bg.jpg") center 20% / cover no-repeat; opacity:0.14;
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent);
+            mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent); }
+  body::after{ content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(ellipse at 20% 0%, rgba(247,147,26,0.06), transparent 55%); }
+  .wrap{ max-width:760px; margin:0 auto; }
+  .mainmenu { display:flex; flex-wrap:wrap; gap:4px; padding:6px 0; border-bottom:1px solid var(--line); }
+  .mainmenu a { color:var(--foam-dim); text-decoration:none; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; padding:2px 12px; border-radius:4px; transition:.15s; }
+  .mainmenu a:hover { color:var(--foam); background:rgba(247,147,26,0.08); }
+
+  /* Phones: the menu wraps instead of shoving the whole page sideways
+     (six links measured 448px inside a 320px bar -- found 2026-07-28). */
+  @media (max-width: 560px) {
+    .mainmenu { gap: 2px; padding: 3px 6px; }
+    .mainmenu a { font-size: 0.66rem; padding: 3px 8px; letter-spacing: 0.05em; }
+  }
+
+  h1{ color:var(--signal); font-size:1.5rem; margin:34px 0 6px; }
+  .sub{ color:var(--foam-dim); font-size:0.9rem; margin-bottom:26px; }
+  .card{ background:rgba(15,38,45,0.82); border:1px solid var(--line); border-radius:8px; padding:20px 24px; margin:18px 0; }
+  h2{ color:var(--signal); font-size:1.05rem; margin:0 0 10px; }
+  a{ color:var(--signal); }
+  .muted{ color:var(--foam-dim); font-size:0.85rem; }
+  .draft{ border:1px dashed var(--signal); border-radius:6px; padding:10px 14px; color:var(--foam-dim); font-style:italic; }
+  .big{ font-size:1.35rem; color:var(--foam); }
+  /* nr_fundglance v2 (2026-09-15, SF: "orange, like the inversion of the others" + compact). Dark on orange = a
+     lightness difference, so it reads the same in black and white. */
+  .card.nrGlance{ background:var(--signal); border-color:var(--signal); color:#111; padding:14px 20px; }
+  .nrGlance h2{ color:#111; font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase; margin:0 0 8px; }
+  .nrGlanceGrid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px 16px; margin:0 0 10px; }
+  .nrGlanceGrid .big{ color:#111; font-weight:700; font-size:1.15rem; line-height:1.2; font-variant-numeric:tabular-nums; }
+  .nrGlanceGrid .lbl{ color:#111; opacity:0.8; font-size:0.72rem; line-height:1.3; margin-top:2px; }
+  .nrGlance p{ margin:4px 0 0; font-size:0.8rem; line-height:1.45; color:#111; }
+  .nrGlance b{ color:#111; }
+  .nrGlance p.nrGlNote{ font-size:0.7rem; opacity:0.8; margin-top:6px; }
+  @media (max-width:620px){ .nrGlanceGrid{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+
+  header.sitehead { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:22px 0 16px; border-bottom:1px solid var(--line); }
+  .header-left { grid-column:1; justify-self:start; display:flex; align-items:center; gap:12px; }
+  .hd-avatar { width:48px; height:48px; border-radius:50%; border:2px solid var(--signal-2, #d06b29); background:#000; }
+  .brand { display:flex; flex-direction:column; align-items:center; gap:6px; grid-column:2; }
+  .brand .logo { height:38px; width:auto; }
+  .brand .coords { font-size:0.62rem; color:var(--foam-dim); letter-spacing:0.14em; text-transform:uppercase; text-align:center; }
+  .socials { grid-column:3; justify-self:end; display:inline-flex; gap:6px; }
+  .socials a { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--line); border-radius:6px; color:var(--foam-dim); transition:.15s; }
+  .socials a:hover { color:var(--signal); border-color:var(--signal-dim, #b86d12); background:rgba(247,147,26,0.06); }
+  .socials a svg { width:16px; height:16px; }
+/* nr_header_mobile (2026-09-14): narrow screens -- avatar+badge left, socials right, wordmark on its own row under them.
+   Desktop untouched. Same fix as the homepage. */
+@media (max-width: 720px) {
+  header.sitehead { grid-template-columns:1fr auto; grid-template-areas:"left socials" "brand brand"; gap:10px; padding:16px 0 12px; }
+  header.sitehead .header-left { grid-area:left; }
+  header.sitehead .socials { grid-area:socials; }
+  header.sitehead .brand { grid-area:brand; justify-self:center; }
+  header.sitehead .brand .logo { height:auto; width:240px; max-width:calc(100vw - 40px); }
+}
+@media (max-width: 400px) {
+  header.sitehead .socials a { width:30px; height:30px; }
+  header.sitehead .socials a svg { width:14px; height:14px; }
+  header.sitehead .header-left { gap:8px; }
+  header.sitehead .live-dot { letter-spacing:.08em; }
+  header.sitehead .socials { gap:4px; }
+  .hd-avatar { width:44px; height:44px; }
+}
+  .live-dot { display:inline-flex; align-items:center; gap:8px; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--foam-dim); }
+  .live-dot .dot { width:9px; height:9px; border-radius:50%; background:var(--foam-dim); }
+  .live-dot.on { color:var(--signal); }
+  .live-dot.on .dot { background:var(--signal); }
+
+  /* nr_i18n (2026-09-11) + nr_langdd (2026-09-12, SF: "it takes up too much space"): the language switch is ONE
+     PILL showing the current language; a tap opens the six under it. The two-letter CODES carry the meaning, flags
+     decorate; the current row is bold with a check mark. Works in black and white. Native <details>: no script to open. */
+  .nrLang { position: relative; display: inline-flex; align-items: center; font-size: 0.66rem; letter-spacing: 0.06em; color: var(--foam, #fff); }
+  .nrLang .nrDd { position: relative; }
+  .nrLang .nrDd > summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; padding: 1px 7px;
+    border: 1px solid var(--nrLangEdge, var(--signal, #f7931a)); border-radius: 3px; cursor: pointer; font-weight: 700; line-height: 1.4; user-select: none; }
+  .nrLang .nrDd > summary::-webkit-details-marker { display: none; }
+  .nrDd > summary { color: var(--foam-dim, var(--ink-dim, var(--mist, #9aa))); }
+  .nrDd > summary:hover, .nrDd[open] > summary { color: var(--foam, var(--ink, var(--paper, #fff))); }
+  .nrLang .nrDd > summary:focus-visible { outline: 3px solid var(--signal, #f5a623); outline-offset: 2px; }
+  .nrLang .nrCaret { display: inline-block; font-size: 0.8em; transition: transform .15s; }
+  .nrLang .nrDd[open] > summary .nrCaret { transform: rotate(180deg); }
+  .nrLang .nrDdMenu { position: absolute; right: 0; top: calc(100% + 4px); min-width: 12em; max-width: calc(100vw - 16px);
+    display: grid; gap: 2px; padding: 4px; background: #0f141b; color: var(--foam, #fff); border: 1px solid currentColor;
+    border-radius: 8px; z-index: 50; box-shadow: 0 6px 18px rgba(0,0,0,.45); text-align: left; }
+  .nrLang .nrDdMenu a, .nrLang .nrDdMenu .cur { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px;
+    white-space: nowrap; text-decoration: none; color: inherit; border: 2px solid transparent; min-height: 32px; box-sizing: border-box;
+    text-transform: none; font-weight: 400; }
+  .nrLang .nrDdMenu a:hover, .nrLang .nrDdMenu a:focus-visible { border-color: currentColor; outline: none; }
+  .nrLang .nrDdMenu b { font-weight: 700; }
+  .nrLang .nrDdMenu .cur { font-weight: 700; }
+  .nrLang .nrDdMenu .nm { font-weight: 400; letter-spacing: 0; }
+  .nrLang .nrDdMenu .ck { margin-left: auto; font-weight: 700; }
+  /* closed = hidden, said outright: an author display rule on the menu must never beat the browser's own hiding */
+  .nrLang .nrDd:not([open]) > .nrDdMenu { display: none; }
+  .nrLang svg { border-radius: 2px; flex: none; }
+  .nrEnCounts { font-size: 0.62rem; font-style: italic; opacity: 0.8; }
+  /* In the radio's main menu the pill sits right after "Log in", at the menu's own small size. */
+  .mainmenu .nrLang { display: inline-flex; margin-left: 6px; }
+  /* nr_menuend (2026-09-15, SF: "LOG IN & language pill don't stick to the right of the menu bar anymore"): Log in
+     and the language pill are ONE group at the right end of its line, also when the menu wraps. */
+  .nrMenuEnd { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nrMenuEnd .nrLang { margin-left: 2px; }
+  .mainmenu .nrLang .nrDd > summary { padding: 1px 7px; font-size: 0.62rem; letter-spacing: 0.04em; }
+  /* The jukebox-mode copy (the phone page behind the arcade QR) sits in the narrow #jukeBanner: the same small pill. */
+  #jukeBanner .nrLang .nrDd > summary { padding: 1px 6px; font-size: 0.62rem; letter-spacing: 0.04em; gap: 4px; }
+  /* that pill stands at the LEFT of the banner, so its list opens to the right, inside a 375 px screen */
+  #jukeBanner .nrLang .nrDdMenu { right: auto; left: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="sitehead">
+    <div class="header-left">
+      <a href="/"><img class="hd-avatar" src="/assets/avatar.webp" alt="Noderunners Radio"></a>
+      <div class="live-dot" id="liveBadge"><span class="dot"></span><span id="liveText" data-i18n-soft="playBadgeOffline">offline</span></div>
+    </div>
+    <div class="brand">
+      <a href="/"><img class="logo" src="/assets/logo.svg" alt="Noderunners FM"></a>
+    </div>
+    <nav class="socials" aria-label="Social links" data-i18n-attr="aria-label:topSocialLinks">
+      <a href="https://t.me/noderunnersradio" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.6l-3.32 15.66c-.25 1.1-.9 1.38-1.83.86l-5.05-3.72-2.44 2.35c-.27.27-.5.5-1.02.5l.36-5.14 9.36-8.46c.4-.36-.09-.56-.63-.2L5.16 13.4.18 11.84c-1.08-.34-1.1-1.08.23-1.6L20.54 3.03c.9-.34 1.69.2 1.4 1.57z"/></svg></a>
+      <a href="https://github.com/LightningJukeboxBot/LightningJukeboxBot" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58l-.01-2.05c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg></a>
+      <a href="https://x.com/NoderunnersFM" target="_blank" rel="noopener" aria-label="X" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.46l8.6-9.83L0 1.15h7.6l5.24 6.93 6.06-6.93zm-1.29 19.5h2.04L6.48 3.24H4.29L17.61 20.65z"/></svg></a>
+    </nav>
+  </header>
+  <nav class="mainmenu" aria-label="Site menu" data-i18n-attr="aria-label:topSiteMenu">
+    <a href="/" data-i18n="topMenuHome">Home</a>
+    <a href="/progress" data-i18n="topMenuProgress">Progress</a>
+    <a href="/dj-handbook" data-i18n="topMenuDjGuide">Guest DJ Guide</a>
+    <a href="/manifesto" data-i18n="topMenuManifesto">Manifesto</a>
+    <a href="/roadmap" data-i18n="topMenuRoadmap">Roadmap</a>
+    <span class="nrMenuEnd"><a href="/login" data-i18n="topMenuLogin">Log in</a><span class="nrLang" role="group" aria-label="Language"></span></span>
+  </nav>
+
+  <h1 data-i18n="fundH11">The honest sats log</h1>
+  <div class="sub" data-i18n="fundDiv1">Where the number on the homepage comes from — and where the sats actually go. Radical transparency, weeds in the water and all.</div>
+
+  <!-- nr_fundglance (2026-09-15, SF): the four figures the homepage rotates beside "Support the ship", in one go -->
+  <div class="card nrGlance" aria-live="polite">
+    <h2 data-i18n="fundGlanceH">At a glance</h2>
+    <div class="nrGlanceGrid">
+      <div><div class="big"><span id="nrGlRaised">…</span></div><div class="lbl" data-i18n="fundGlanceRaised">sats raised</div></div>
+      <div><div class="big"><span id="nrGlRemain">…</span></div><div class="lbl" data-i18n="fundGlanceRemain">of which remain</div></div>
+      <div><div class="big"><span id="nrGlDj">…</span></div><div class="lbl" data-i18n="fundGlanceDj">paid straight to guest DJs</div></div>
+      <div><div class="big"><span id="nrGlOg">…</span></div><div class="lbl" data-i18n="fundGlanceOg">sent straight to OG artists</div></div>
+    </div>
+    <p><span data-i18n-html="fundGlanceIn"><b>In:</b> donations, jukebox request fees and zaps.</span> <span data-i18n-html="fundGlanceOut"><b>Out so far:</b></span> <b id="nrGlOut">…</b> <span data-i18n="fundGlanceOutTail">sats — raised minus what remains. Part went straight to DJs and artists; the rest kept the ship running.</span></p>
+    <p class="nrGlNote" data-i18n="fundGlanceNote">Raised, DJ and artist figures come from payment records. What remains, in the jar and the station wallets, is counted by hand by the captain.</p>
+  </div>
+
+
+  <div class="card">
+    <h2 data-i18n="fundH21">The number on the homepage</h2>
+    <p data-i18n-html="fundP1">The <b>"sats raised"</b> counter is two things added together:</p>
+    <p data-i18n-html="fundP2"><span class="big">measured sats</span><br>
+    Every donation and jukebox payment that has landed in the station's wallets since our Lightning era began (July&nbsp;2026) — counted from real payment records, never faked, never rounded up. Payouts to DJs don't lower it: raised is raised.</p>
+    <p data-i18n-html="fundP3"><span class="big">+ 3,000,000 sats baseline</span><br>
+    A good-faith estimate of everything raised in the years <em>before</em> we could measure — the Geyser fund era and years of direct support. It's honest accounting from the captain's end, with room for human error. Treat it as a weathered logbook, not a bank statement.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="fundH22">Where the sats go</h2>
+    <p data-i18n-html="fundP4">During a <b>live session</b>, donations pool into a session pot. When the session ends, the guest-DJ share is split <b>evenly</b> across that night's crew — whole sats only, paid straight to each DJ, remainders stay with the ship. The split ladder and where it's heading long-term live on <a href="/roadmap">the roadmap</a>.</p>
+    <p data-i18n-html="fundP5" data-price-len="fundP5Len">The <b>jukebox</b>'s 21-sat request fee for songs from the ship's own library is purely <b>anti-spam</b>. A request from the <b>Wavlake</b> lane costs 210 sats and is <b>value-for-value</b>, live since July 2026: the full 210 sats leave the station's passthrough wallet through Wavlake to the artist; the ship keeps none of it. A request sent through <b>our bot on X</b> costs the X share — 100 sats today — on top of the artist's 210 on the Wavlake lane; that share exists because every post on X by <a href="https://x.com/JukeboxLNDbot">@JukeboxLNDbot</a> costs the station real money, and it covers X's bill and nothing else. The price may change according to bitcoin's volatility. The road towards more value-for-value is in <a href="/manifesto">the manifesto</a>.</p>
+    <p data-i18n-html="fundP5b">We will use your donations and the anti-spam fees at our discretion to keep the lights on, and to maintain and replace hardware as needed. Thank you for your support. We will spend your hard-earned sats wisely and frugally. The <b>"of which remain"</b> figure under the counter on the homepage is what is actually still in the offline jar and the station wallets together, kept up to date by hand by the captain.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="fundH23">Self-custody, always</h2>
+    <p data-i18n="fundP6">The station is not a bank. Guest DJs are nudged — loudly — to set their own Lightning Address so payouts never even park here, or to drain their station wallet after every session. Sats belong in wallets their owners control.</p>
+  </div>
+
+  <p class="muted" data-i18n-html="fundP7">Every claim on this page is meant to survive a fact-check. Spot something off? Say so in <a href="https://t.me/noderunnersradio">the Telegram</a> — the log gets corrected, not defended.</p>
+<div class="nrEnCounts" data-i18n="englishCounts" hidden style="margin:18px 0 0;font-size:0.72rem;">Translated from English. If anything differs, the English text counts.</div>
+</div>
+<script>
+  // nr_i18n (2026-09-11, SF: six languages on all his sites). ONE page, one dictionary per language,
+  // English fallback. ?lang=xx for this view; a TAP on the switch also remembers it (localStorage nrLang).
+  // Never a reload: an open Lightning invoice must survive a language change. An English page is never
+  // rewritten -- the markup already says it. See plan/radio_i18n_runtime.py.
+  (function(){
+    var LANGS = ["en", "nl", "de", "fr", "es", "pt"];
+    var NAMES = {"en": "English", "nl": "Nederlands", "de": "Deutsch", "fr": "Français", "es": "Español", "pt": "Português"};
+    var LOCALES = {"en": "en-US", "nl": "nl-NL", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "pt": "pt-PT"};
+    var FLAGS = {"en": "<svg viewBox=\"0 0 60 30\" preserveAspectRatio=\"xMidYMid slice\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><clipPath id=\"nrGbS\"><path d=\"M0,0 v30 h60 v-30 z\"/><\/clipPath><clipPath id=\"nrGbT\"><path d=\"M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z\"/><\/clipPath><g clip-path=\"url(#nrGbS)\"><path d=\"M0,0 v30 h60 v-30 z\" fill=\"#012169\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" stroke=\"#FFF\" stroke-width=\"6\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" clip-path=\"url(#nrGbT)\" stroke=\"#C8102E\" stroke-width=\"4\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#FFF\" stroke-width=\"10\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#C8102E\" stroke-width=\"6\"/><\/g><\/svg>", "nl": "<svg viewBox=\"0 0 9 6\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AE1C28\" d=\"M0 0h9v2H0z\"/><path fill=\"#FFF\" d=\"M0 2h9v2H0z\"/><path fill=\"#21468B\" d=\"M0 4h9v2H0z\"/><\/svg>", "de": "<svg viewBox=\"0 0 5 3\" preserveAspectRatio=\"none\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#000\" d=\"M0 0h5v1H0z\"/><path fill=\"#DD0000\" d=\"M0 1h5v1H0z\"/><path fill=\"#FFCE00\" d=\"M0 2h5v1H0z\"/><\/svg>", "fr": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#002395\" d=\"M0 0h1v2H0z\"/><path fill=\"#FFF\" d=\"M1 0h1v2H1z\"/><path fill=\"#ED2939\" d=\"M2 0h1v2H2z\"/><\/svg>", "es": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AA151B\" d=\"M0 0h3v2H0z\"/><path fill=\"#F1BF00\" d=\"M0 .5h3v1H0z\"/><\/svg>", "pt": "<svg viewBox=\"0 0 30 20\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#006600\" d=\"M0 0h12v20H0z\"/><path fill=\"#FF0000\" d=\"M12 0h18v20H12z\"/><circle cx=\"12\" cy=\"10\" r=\"4.2\" fill=\"#FFCC00\"/><\/svg>"};
+    var I18N = {
+      "en": {"fundP1": "The <b>\"sats raised\"<\/b> counter is two things added together:", "playBadgeOffline": "offline", "fundH23": "Self-custody, always", "fundH22": "Where the sats go", "topMenuHome": "Home", "fundP7": "Every claim on this page is meant to survive a fact-check. Spot something off? Say so in <a href=\"https://t.me/noderunnersradio\">the Telegram<\/a> — the log gets corrected, not defended.", "fundP5": "The <b>jukebox</b>'s 21-sat request fee for songs from the ship's own library is purely <b>anti-spam</b>. A request from the <b>Wavlake</b> lane costs 210 sats and is <b>value-for-value</b>, live since July 2026: the full 210 sats leave the station's passthrough wallet through Wavlake to the artist; the ship keeps none of it. A request sent through <b>our bot on X</b> costs the X share — 100 sats today — on top of the artist's 210 on the Wavlake lane; that share exists because every post on X by <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot</a> costs the station real money, and it covers X's bill and nothing else. The price may change according to bitcoin's volatility. The road towards more value-for-value is in <a href=\"/manifesto\">the manifesto</a>.", "fundP5b": "We will use your donations and the anti-spam fees at our discretion to keep the lights on, and to maintain and replace hardware as needed. Thank you for your support. We will spend your hard-earned sats wisely and frugally. The <b>\"of which remain\"</b> figure under the counter on the homepage is what is actually still in the offline jar and the station wallets together, kept up to date by hand by the captain.", "playBadgeLive": "live", "fundDiv1": "Where the number on the homepage comes from — and where the sats actually go. Radical transparency, weeds in the water and all.", "fundP3": "<span class=\"big\">+ 3,000,000 sats baseline<\/span><br>\r\n    A good-faith estimate of everything raised in the years <em>before<\/em> we could measure — the Geyser fund era and years of direct support. It's honest accounting from the captain's end, with room for human error. Treat it as a weathered logbook, not a bank statement.", "fundTitle": "The honest sats log — Noderunners Radio", "topMenuDjGuide": "Guest DJ Guide", "topMenuManifesto": "Manifesto", "topMenuLogin": "Log in", "langLabel": "Language", "topMenuProgress": "Progress", "englishCounts": "Translated from English. If anything differs, the English text counts.", "topCoords": "broadcasting from international waters", "fundP6": "The station is not a bank. Guest DJs are nudged — loudly — to set their own Lightning Address so payouts never even park here, or to drain their station wallet after every session. Sats belong in wallets their owners control.", "topSocialLinks": "Social links", "fundP2": "<span class=\"big\">measured sats<\/span><br>\r\n    Every donation and jukebox payment that has landed in the station's wallets since our Lightning era began (July&nbsp;2026) — counted from real payment records, never faked, never rounded up. Payouts to DJs don't lower it: raised is raised.", "fundH11": "The honest sats log", "topMenuRoadmap": "Roadmap", "fundP4": "During a <b>live session<\/b>, donations pool into a session pot. When the session ends, the guest-DJ share is split <b>evenly<\/b> across that night's crew — whole sats only, paid straight to each DJ, remainders stay with the ship. The split ladder and where it's heading long-term live on <a href=\"/roadmap\">the roadmap<\/a>.", "topSiteMenu": "Site menu", "fundH21": "The number on the homepage", "fundGlanceH": "At a glance", "fundGlanceRaised": "sats raised", "fundGlanceRemain": "of which remain", "fundGlanceDj": "paid straight to guest DJs", "fundGlanceOg": "sent straight to OG artists", "fundGlanceIn": "<b>In:<\/b> donations, jukebox request fees and zaps.", "fundGlanceOut": "<b>Out so far:<\/b>", "fundGlanceOutTail": "sats — raised minus what remains. Part went straight to DJs and artists; the rest kept the ship running.", "fundGlanceNote": "Raised, DJ and artist figures come from payment records. What remains, in the jar and the station wallets, is counted by hand by the captain.", "fundP5Len": "The <b>jukebox<\/b>'s request fee for songs from the ship's own library &mdash; 21 sats, a little more for a long song &mdash; is purely <b>anti-spam<\/b>. A request from the <b>Wavlake<\/b> lane costs 210 sats and is <b>value-for-value<\/b>, live since July 2026: the full 210 sats leave the station's passthrough wallet through Wavlake to the artist; the ship keeps none of it. A request sent through <b>our bot on X<\/b> costs the X share — 100 sats today — on top of the artist's 210 on the Wavlake lane; that share exists because every post on X by <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot<\/a> costs the station real money, and it covers X's bill and nothing else. The price may change according to bitcoin's volatility. The road towards more value-for-value is in <a href=\"/manifesto\">the manifesto<\/a>."},
+      "nl": {"fundTitle": "Het eerlijke sats-logboek — Noderunners Radio", "fundH11": "Het eerlijke sats-logboek", "fundDiv1": "Waar het getal op de homepage vandaan komt — en waar de sats echt heen gaan. Radicale transparantie, zeewier en al.", "fundH21": "Het getal op de homepage", "fundP1": "De teller <b>\"sats opgehaald\"<\/b> bestaat uit twee dingen bij elkaar opgeteld:", "fundP2": "<span class=\"big\">gemeten sats<\/span><br>\r\n    Elke donatie en jukeboxbetaling die in de wallets van het station is geland sinds ons Lightning-tijdperk begon (juli&nbsp;2026) — geteld uit echte betaalgegevens, nooit nep, nooit naar boven afgerond. Uitbetalingen aan DJ's halen het niet omlaag: opgehaald is opgehaald.", "fundP3": "<span class=\"big\">+ 3.000.000 sats als basis<\/span><br>\r\n    Een schatting te goeder trouw van alles wat is opgehaald in de jaren <em>voordat<\/em> we konden meten — de tijd van het Geyser-fonds en jaren van directe steun. Het is eerlijke boekhouding van de kant van de kapitein, met ruimte voor menselijke fouten. Zie het als een verweerd logboek, niet als een bankafschrift.", "fundH22": "Waar de sats heen gaan", "fundP4": "Tijdens een <b>live sessie<\/b> gaan donaties in een sessiepot. Als de sessie afloopt, wordt het deel voor de gast-DJ's <b>gelijk<\/b> verdeeld over de crew van die avond — alleen hele sats, rechtstreeks aan elke DJ betaald, restjes blijven bij het schip. De verdeelladder en waar die op lange termijn naartoe gaat, staan op <a href=\"/roadmap\">de roadmap<\/a>.", "fundP5": "De 21 sats per verzoekje bij de <b>jukebox</b> voor nummers uit de eigen bibliotheek van het schip zijn puur <b>anti-spam</b>. Een verzoekje via de <b>Wavlake</b>-lane kost 210 sats en is <b>value-for-value</b>, live sinds juli 2026: de volle 210 sats gaan vanuit de doorgeefwallet van het station via Wavlake naar de artiest; het schip houdt er niets van. Een verzoekje via <b>onze bot op X</b> kost het X-aandeel — vandaag 100 sats — bovenop de 210 voor de artiest op de Wavlake-lane; dat aandeel bestaat omdat elke post op X door <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot</a> het station echt geld kost, en het dekt de rekening van X en niets anders. De prijs kan veranderen met de koersschommelingen van bitcoin. De weg naar méér value-for-value staat in <a href=\"/manifesto\">het manifest</a>.", "fundP5b": "We gebruiken je donaties en de anti-spam-bijdragen naar eigen inzicht om de lichten aan te houden en om hardware te onderhouden en te vervangen als dat nodig is. Dank voor je steun. We geven je zuurverdiende sats verstandig en zuinig uit. Het cijfer <b>\"waarvan nog over\"</b> onder de teller op de homepage is wat er werkelijk nog in de offline pot en de stationwallets samen zit, met de hand bijgehouden door de kapitein.", "fundH23": "Self-custody, altijd", "fundP6": "Het station is geen bank. Gast-DJ's worden — luid en duidelijk — aangespoord om hun eigen Lightning Address in te stellen, zodat uitbetalingen hier niet eens parkeren, of om hun stationswallet na elke sessie leeg te halen. Sats horen in wallets die hun eigenaar zelf beheert.", "fundP7": "Elke bewering op deze pagina hoort een factcheck te overleven. Zie je iets wat niet klopt? Zeg het in <a href=\"https://t.me/noderunnersradio\">de Telegram-groep<\/a> — het logboek wordt verbeterd, niet verdedigd.", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Inloggen", "topSiteMenu": "Sitemenu", "langLabel": "Taal", "topMenuProgress": "Voortgang", "topMenuDjGuide": "Gast-DJ-gids", "englishCounts": "Vertaald uit het Engels. Wijkt er iets af, dan geldt de Engelse tekst.", "topCoords": "zendt uit vanuit internationale wateren", "playBadgeLive": "live", "topSocialLinks": "Sociale media", "topMenuHome": "Home", "fundGlanceH": "In één oogopslag", "fundGlanceRaised": "sats opgehaald", "fundGlanceRemain": "waarvan nog over", "fundGlanceDj": "rechtstreeks betaald aan gast-DJ's", "fundGlanceOg": "rechtstreeks naar OG-artiesten", "fundGlanceIn": "<b>In:<\/b> donaties, jukebox-verzoekbijdragen en zaps.", "fundGlanceOut": "<b>Uit tot nu toe:<\/b>", "fundGlanceOutTail": "sats — opgehaald min wat er nog over is. Een deel ging rechtstreeks naar DJ's en artiesten; de rest hield het schip in de vaart.", "fundGlanceNote": "Opgehaald, DJ- en artiestencijfers komen uit betaalgegevens. Wat er nog over is, in de pot en de stationwallets, telt de kapitein met de hand.", "fundP5Len": "Het verzoekje bij de <b>jukebox<\/b> voor nummers uit de eigen bibliotheek van het schip &mdash; 21 sats, iets meer voor een lang nummer &mdash; is puur <b>anti-spam<\/b>. Een verzoekje via de <b>Wavlake<\/b>-lane kost 210 sats en is <b>value-for-value<\/b>, live sinds juli 2026: de volle 210 sats gaan vanuit de doorgeefwallet van het station via Wavlake naar de artiest; het schip houdt er niets van. Een verzoekje via <b>onze bot op X<\/b> kost het X-aandeel — vandaag 100 sats — bovenop de 210 voor de artiest op de Wavlake-lane; dat aandeel bestaat omdat elke post op X door <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot<\/a> het station echt geld kost, en het dekt de rekening van X en niets anders. De prijs kan veranderen met de koersschommelingen van bitcoin. De weg naar méér value-for-value staat in <a href=\"/manifesto\">het manifest<\/a>."},
+      "de": {"fundTitle": "Das ehrliche Logbuch aller sats — Noderunners Radio", "fundH11": "Das ehrliche Logbuch aller sats", "fundDiv1": "Woher die Zahl auf der Startseite kommt — und wohin die sats wirklich gehen. Radikale Transparenz, samt Seetang im Wasser.", "fundH21": "Die Zahl auf der Startseite", "fundP1": "Der Zähler <b>„sats gesammelt“<\/b> besteht aus zwei addierten Teilen:", "fundP2": "<span class=\"big\">gemessene sats<\/span><br>\n    Jede Spende und jede Jukebox-Zahlung, die seit Beginn unserer Lightning-Ära (Juli&nbsp;2026) in den Wallets des Senders gelandet ist — gezählt aus echten Zahlungsdaten, nie gefälscht, nie aufgerundet. Auszahlungen an DJs senken sie nicht: gesammelt ist gesammelt.", "fundP3": "<span class=\"big\">+ 3.000.000 sats Grundbetrag<\/span><br>\n    Eine Schätzung nach bestem Wissen und Gewissen für alles, was in den Jahren <em>vor<\/em> unserer Messung gesammelt wurde — die Zeit des Geyser-Funds und Jahre direkter Unterstützung. Das ist ehrliche Buchführung aus Sicht des Kapitäns, mit Raum für menschliche Fehler. Sieh es als verwittertes Logbuch, nicht als Kontoauszug.", "fundH22": "Wohin die sats gehen", "fundP4": "Während einer <b>Live-Session<\/b> fließen Spenden in einen Session-Topf. Wenn die Session endet, wird der Anteil der Gast-DJs <b>gleichmäßig<\/b> auf die Crew des Abends aufgeteilt — nur ganze sats, direkt an jeden DJ ausgezahlt, Reste bleiben beim Schiff. Die Stufenleiter der Aufteilung und wohin sie langfristig führt, stehen auf <a href=\"/roadmap\">der Roadmap<\/a>.", "fundP5": "Die Wunschgebühr der <b>Jukebox</b> von 21 sats für Songs aus der eigenen Bibliothek des Schiffs ist rein <b>Anti-Spam</b>. Ein Wunsch über die <b>Wavlake</b>-Spur kostet 210 sats und ist <b>Value-for-Value</b>, live seit Juli 2026: die vollen 210 sats gehen aus dem Durchleitungs-Wallet des Senders über Wavlake an den Künstler; das Schiff behält nichts davon. Ein Wunsch über <b>unseren Bot auf X</b> kostet den X-Anteil – heute 100 sats – zusätzlich zu den 210 für den Künstler auf der Wavlake-Spur; diesen Anteil gibt es, weil jeder Post auf X von <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot</a> den Sender echtes Geld kostet, und er deckt die Rechnung von X und sonst nichts. Der Preis kann sich mit den Kursschwankungen von Bitcoin ändern. Der Weg zu mehr Value-for-Value steht im <a href=\"/manifesto\">Manifest</a>.", "fundP5b": "Wir verwenden deine Spenden und die Anti-Spam-Gebühren nach eigenem Ermessen, um das Licht anzulassen und Hardware zu warten und bei Bedarf zu ersetzen. Danke für deine Unterstützung. Wir geben deine hart verdienten Sats klug und sparsam aus. Die Zahl <b>\"davon noch übrig\"</b> unter dem Zähler auf der Startseite ist, was tatsächlich noch im Offline-Sparglas und in den Wallets des Senders zusammen liegt – vom Kapitän von Hand gepflegt.", "fundH23": "Selbstverwahrung, immer", "fundP6": "Der Sender ist keine Bank. Gast-DJs werden — laut — dazu angestupst, ihre eigene Lightning-Adresse festzulegen, damit Auszahlungen hier gar nicht erst parken, oder ihre Sender-Wallet nach jeder Session leerzuräumen. Sats gehören in Wallets, die ihre Besitzer selbst kontrollieren.", "fundP7": "Jede Aussage auf dieser Seite soll einem Faktencheck standhalten. Stimmt etwas nicht? Sag es in <a href=\"https://t.me/noderunnersradio\">der Telegram-Gruppe<\/a> — das Logbuch wird korrigiert, nicht verteidigt.", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Anmelden", "topSiteMenu": "Hauptmenü", "langLabel": "Sprache", "topMenuProgress": "Fortschritt", "topMenuDjGuide": "Gast-DJ-Guide", "englishCounts": "Aus dem Englischen übersetzt. Bei Abweichungen gilt der englische Text.", "topCoords": "sendet aus internationalen Gewässern", "playBadgeLive": "live", "topSocialLinks": "Social-Media-Links", "topMenuHome": "Start", "fundGlanceH": "Auf einen Blick", "fundGlanceRaised": "sats gesammelt", "fundGlanceRemain": "davon noch übrig", "fundGlanceDj": "direkt an Gast-DJs gezahlt", "fundGlanceOg": "direkt an OG-Künstler gegangen", "fundGlanceIn": "<b>Rein:<\/b> Spenden, Jukebox-Wunschgebühren und Zaps.", "fundGlanceOut": "<b>Raus bisher:<\/b>", "fundGlanceOutTail": "sats — gesammelt minus das, was noch übrig ist. Ein Teil ging direkt an DJs und Künstler; der Rest hielt das Schiff auf Kurs.", "fundGlanceNote": "Gesammelt-, DJ- und Künstlerzahlen stammen aus Zahlungsdaten. Was übrig ist, im Sparglas und in den Wallets des Senders, zählt der Kapitän von Hand.", "fundP5Len": "Die Wunschgebühr der <b>Jukebox<\/b> für Songs aus der eigenen Bibliothek des Schiffs &mdash; 21 sats, etwas mehr für einen langen Song &mdash; ist rein <b>Anti-Spam<\/b>. Ein Wunsch über die <b>Wavlake<\/b>-Spur kostet 210 sats und ist <b>Value-for-Value<\/b>, live seit Juli 2026: die vollen 210 sats gehen aus dem Durchleitungs-Wallet des Senders über Wavlake an den Künstler; das Schiff behält nichts davon. Ein Wunsch über <b>unseren Bot auf X<\/b> kostet den X-Anteil – heute 100 sats – zusätzlich zu den 210 für den Künstler auf der Wavlake-Spur; diesen Anteil gibt es, weil jeder Post auf X von <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot<\/a> den Sender echtes Geld kostet, und er deckt die Rechnung von X und sonst nichts. Der Preis kann sich mit den Kursschwankungen von Bitcoin ändern. Der Weg zu mehr Value-for-Value steht im <a href=\"/manifesto\">Manifest<\/a>."},
+      "fr": {"fundTitle": "Le journal honnête des sats — Noderunners Radio", "fundH11": "Le journal honnête des sats", "fundDiv1": "D’où vient le chiffre de la page d’accueil — et où vont réellement les sats. Transparence radicale, algues dans l’eau comprises.", "fundH21": "Le chiffre de la page d’accueil", "fundP1": "Le compteur <b>« sats récoltés »<\/b> additionne deux choses :", "fundP2": "<span class=\"big\">sats mesurés<\/span><br>\r\n    Chaque don et chaque paiement du jukebox arrivé dans les wallets de la station depuis le début de notre ère Lightning (juillet&nbsp;2026) — compté à partir de vrais relevés de paiement, jamais truqué, jamais arrondi à la hausse. Les versements aux DJ ne le font pas baisser : ce qui est récolté est récolté.", "fundP3": "<span class=\"big\">+ 3 000 000 sats de base<\/span><br>\r\n    Une estimation de bonne foi de tout ce qui a été récolté pendant les années <em>avant<\/em> que nous puissions mesurer — l’ère du fonds Geyser et des années de soutien direct. C’est une comptabilité honnête, tenue du côté du capitaine, avec une marge pour l’erreur humaine. Considérez-la comme un journal de bord patiné par le temps, pas comme un relevé bancaire.", "fundH22": "Où vont les sats", "fundP4": "Pendant une <b>session en direct<\/b>, les dons s’accumulent dans une cagnotte de session. À la fin de la session, la part des DJ invités est partagée <b>à parts égales<\/b> entre l’équipage du soir — uniquement des sats entiers, versés directement à chaque DJ, le reliquat reste au navire. L’échelle de partage et sa direction à long terme se trouvent sur <a href=\"/roadmap\">la roadmap<\/a>.", "fundP5": "Les frais de demande de 21 sats du <b>jukebox</b> pour les titres de la bibliothèque du navire servent uniquement d’<b>anti-spam</b>. Une demande sur la voie <b>Wavlake</b> coûte 210 sats et c’est du <b>value-for-value</b>, en service depuis juillet 2026 : les 210 sats partent en entier du portefeuille de passage de la station, via Wavlake, vers l’artiste ; le navire n’en garde rien. Une demande passée par <b>notre bot sur X</b> coûte la part X — 100 sats aujourd’hui — en plus des 210 pour l’artiste sur la voie Wavlake ; cette part existe parce que chaque publication sur X par <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot</a> coûte de l’argent réel à la station, et elle couvre la facture de X et rien d’autre. Le prix peut changer selon la volatilité du bitcoin. La route vers plus de value-for-value est dans <a href=\"/manifesto\">le manifeste</a>.", "fundP5b": "Nous utilisons vos dons et les frais anti-spam à notre discrétion pour garder la lumière allumée, entretenir le matériel et le remplacer quand c’est nécessaire. Merci pour votre soutien. Nous dépenserons vos sats durement gagnés avec sagesse et frugalité. Le chiffre <b>« dont il reste »</b> sous le compteur de la page d’accueil est ce qu’il reste réellement dans la tirelire hors ligne et les portefeuilles de la station réunis, tenu à jour à la main par le capitaine.", "fundH23": "L’auto-garde, toujours", "fundP6": "La station n’est pas une banque. Les DJ invités sont incités — haut et fort — à définir leur propre adresse Lightning pour que les versements ne fassent même pas escale ici, ou à vider leur wallet de la station après chaque session. Les sats ont leur place dans des wallets que leurs propriétaires contrôlent.", "fundP7": "Chaque affirmation de cette page doit résister à une vérification des faits. Vous repérez quelque chose qui cloche ? Dites-le dans <a href=\"https://t.me/noderunnersradio\">le groupe Telegram<\/a> — le journal est corrigé, pas défendu.", "topMenuManifesto": "Manifeste", "playBadgeOffline": "hors ligne", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Connexion", "topSiteMenu": "Menu du site", "langLabel": "Langue", "topMenuProgress": "Avancement", "topMenuDjGuide": "Guide DJ invité", "englishCounts": "Traduit de l’anglais. En cas de différence, le texte anglais fait foi.", "topCoords": "on émet depuis les eaux internationales", "playBadgeLive": "direct", "topSocialLinks": "Réseaux sociaux", "topMenuHome": "Accueil", "fundGlanceH": "En un coup d’œil", "fundGlanceRaised": "sats récoltés", "fundGlanceRemain": "dont il reste", "fundGlanceDj": "versés directement aux DJ invités", "fundGlanceOg": "envoyés directement aux artistes OG", "fundGlanceIn": "<b>Entrées :<\/b> dons, frais de demande du jukebox et zaps.", "fundGlanceOut": "<b>Sorties à ce jour :<\/b>", "fundGlanceOutTail": "sats — récoltés moins ce qui reste. Une partie est allée directement aux DJ et aux artistes ; le reste a fait tourner le navire.", "fundGlanceNote": "Les chiffres récoltés, DJ et artistes viennent des relevés de paiement. Ce qui reste, dans la tirelire et les portefeuilles de la station, est compté à la main par le capitaine.", "fundP5Len": "Les frais de demande du <b>jukebox<\/b> pour les titres de la bibliothèque du navire &mdash; 21 sats, un peu plus pour un long morceau &mdash; servent uniquement d’<b>anti-spam<\/b>. Une demande sur la voie <b>Wavlake<\/b> coûte 210 sats et c’est du <b>value-for-value<\/b>, en service depuis juillet 2026 : les 210 sats partent en entier du portefeuille de passage de la station, via Wavlake, vers l’artiste ; le navire n’en garde rien. Une demande passée par <b>notre bot sur X<\/b> coûte la part X — 100 sats aujourd’hui — en plus des 210 pour l’artiste sur la voie Wavlake ; cette part existe parce que chaque publication sur X par <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot<\/a> coûte de l’argent réel à la station, et elle couvre la facture de X et rien d’autre. Le prix peut changer selon la volatilité du bitcoin. La route vers plus de value-for-value est dans <a href=\"/manifesto\">le manifeste<\/a>."},
+      "es": {"fundTitle": "El registro honesto de sats — Noderunners Radio", "fundH11": "El registro honesto de sats", "fundDiv1": "De dónde sale la cifra de la página de inicio — y a dónde van de verdad los sats. Transparencia radical, con algas en el agua y todo.", "fundH21": "La cifra de la página de inicio", "fundP1": "El contador de <b>«sats recaudados»<\/b> es la suma de dos cosas:", "fundP2": "<span class=\"big\">sats medidos<\/span><br>\r\n    Cada donación y cada pago de la jukebox que ha llegado a las wallets de la emisora desde que empezó nuestra era Lightning (julio de&nbsp;2026) — contados a partir de registros de pago reales, nunca inventados, nunca redondeados al alza. Los pagos a los DJs no lo reducen: lo recaudado, recaudado está.", "fundP3": "<span class=\"big\">+ 3.000.000 sats de base<\/span><br>\r\n    Una estimación de buena fe de todo lo recaudado en los años <em>anteriores<\/em> a poder medirlo — la época del fondo en Geyser y años de apoyo directo. Son cuentas honestas por parte del capitán, con margen para el error humano. Tómalo como un cuaderno de bitácora curtido, no como un extracto bancario.", "fundH22": "A dónde van los sats", "fundP4": "Durante una <b>sesión en directo<\/b>, las donaciones se juntan en un bote de la sesión. Cuando termina la sesión, la parte de los DJs invitados se reparte <b>a partes iguales<\/b> entre la tripulación de esa noche — solo sats enteros, pagados directamente a cada DJ, y lo que sobra se queda en el barco. La escalera del reparto, y hacia dónde va a largo plazo, están en <a href=\"/roadmap\">la hoja de ruta<\/a>.", "fundP5": "La tarifa de 21 sats por petición de la <b>jukebox</b> para canciones de la propia biblioteca del barco es puramente <b>antispam</b>. Una petición por el carril de <b>Wavlake</b> cuesta 210 sats y es <b>value-for-value</b>, en marcha desde julio de 2026: los 210 sats completos salen de la cartera de paso de la emisora, a través de Wavlake, hacia el artista; el barco no se queda con nada. Una petición hecha a través de <b>nuestro bot en X</b> cuesta la parte de X — hoy 100 sats — además de los 210 para el artista en el carril de Wavlake; esa parte existe porque cada publicación en X de <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot</a> le cuesta dinero real a la emisora, y cubre la factura de X y nada más. El precio puede cambiar según la volatilidad de bitcoin. El camino hacia más value-for-value está en <a href=\"/manifesto\">el manifiesto</a>.", "fundP5b": "Usaremos tus donaciones y las tarifas antispam a nuestro criterio para mantener las luces encendidas y para mantener y reemplazar el hardware cuando haga falta. Gracias por tu apoyo. Gastaremos tus sats, ganados con esfuerzo, con sensatez y frugalidad. La cifra <b>\"de los que quedan\"</b> bajo el contador de la página principal es lo que realmente queda en el bote sin conexión y en las carteras de la emisora juntos, mantenida a mano por el capitán.", "fundH23": "Autocustodia, siempre", "fundP6": "La emisora no es un banco. A los DJs invitados se les anima — a voces — a configurar su propia Lightning Address para que los pagos ni siquiera se queden aparcados aquí, o a vaciar su wallet de la emisora después de cada sesión. Los sats deben estar en wallets que controlen sus dueños.", "fundP7": "Cada afirmación de esta página está pensada para sobrevivir a una verificación. ¿Ves algo raro? Dilo en <a href=\"https://t.me/noderunnersradio\">el grupo de Telegram<\/a> — el registro se corrige, no se defiende.", "topMenuManifesto": "Manifiesto", "playBadgeOffline": "desconectado", "topMenuRoadmap": "Hoja de ruta", "topMenuLogin": "Entrar", "topSiteMenu": "Menú del sitio", "langLabel": "Idioma", "topMenuProgress": "Progreso", "topMenuDjGuide": "Guía para DJs", "englishCounts": "Traducido del inglés. Si algo difiere, prevalece el texto en inglés.", "topCoords": "emitiendo desde aguas internacionales", "playBadgeLive": "directo", "topSocialLinks": "Redes sociales", "topMenuHome": "Inicio", "fundGlanceH": "De un vistazo", "fundGlanceRaised": "sats recaudados", "fundGlanceRemain": "de los que quedan", "fundGlanceDj": "pagados directamente a los DJ invitados", "fundGlanceOg": "enviados directamente a los artistas OG", "fundGlanceIn": "<b>Entradas:<\/b> donaciones, tarifas de petición de la jukebox y zaps.", "fundGlanceOut": "<b>Salidas hasta ahora:<\/b>", "fundGlanceOutTail": "sats — lo recaudado menos lo que queda. Una parte fue directamente a DJ y artistas; el resto mantuvo el barco a flote.", "fundGlanceNote": "Las cifras de lo recaudado, DJ y artistas salen de los registros de pago. Lo que queda, en el bote y en las carteras de la emisora, lo cuenta a mano el capitán.", "fundP5Len": "La tarifa por petición de la <b>jukebox<\/b> para canciones de la propia biblioteca del barco &mdash; 21 sats, algo más si la canción es larga &mdash; es puramente <b>antispam<\/b>. Una petición por el carril de <b>Wavlake<\/b> cuesta 210 sats y es <b>value-for-value<\/b>, en marcha desde julio de 2026: los 210 sats completos salen de la cartera de paso de la emisora, a través de Wavlake, hacia el artista; el barco no se queda con nada. Una petición hecha a través de <b>nuestro bot en X<\/b> cuesta la parte de X — hoy 100 sats — además de los 210 para el artista en el carril de Wavlake; esa parte existe porque cada publicación en X de <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot<\/a> le cuesta dinero real a la emisora, y cubre la factura de X y nada más. El precio puede cambiar según la volatilidad de bitcoin. El camino hacia más value-for-value está en <a href=\"/manifesto\">el manifiesto<\/a>."},
+      "pt": {"fundTitle": "O registo honesto de sats — Noderunners Radio", "fundH11": "O registo honesto de sats", "fundDiv1": "De onde vem o número da página inicial — e para onde vão realmente os sats. Transparência radical, com algas na água e tudo.", "fundH21": "O número da página inicial", "fundP1": "O contador <b>«sats angariados»<\/b> é a soma de duas coisas:", "fundP2": "<span class=\"big\">sats medidos<\/span><br>\r\n    Cada donativo e pagamento da jukebox que chegou às carteiras da rádio desde o início da nossa era Lightning (julho de&nbsp;2026) — contados a partir de registos reais de pagamentos, nunca falsificados, nunca arredondados para cima. Os pagamentos aos DJs não o fazem descer: o que foi angariado, foi angariado.", "fundP3": "<span class=\"big\">+ 3.000.000 sats de base<\/span><br>\r\n    Uma estimativa de boa-fé de tudo o que foi angariado nos anos <em>antes<\/em> de conseguirmos medir — a era do fundo Geyser e anos de apoio direto. É uma contabilidade honesta do lado do capitão, com margem para erro humano. Trate-a como um diário de bordo gasto pelo tempo, não como um extrato bancário.", "fundH22": "Para onde vão os sats", "fundP4": "Durante uma <b>sessão ao vivo<\/b>, os donativos juntam-se num pote da sessão. Quando a sessão termina, a parte dos DJs convidados é dividida <b>por igual<\/b> pela tripulação dessa noite — só sats inteiros, pagos diretamente a cada DJ, os restos ficam com o navio. A escada da divisão, e para onde caminha a longo prazo, está no <a href=\"/roadmap\">roteiro<\/a>.", "fundP5": "A taxa de 21 sats por pedido da <b>jukebox</b> para músicas da própria biblioteca do navio é puramente <b>anti-spam</b>. Um pedido pela via <b>Wavlake</b> custa 210 sats e é <b>value-for-value</b>, a funcionar desde julho de 2026: os 210 sats completos saem da carteira de passagem da estação, através da Wavlake, para o artista; o navio não fica com nada. Um pedido feito através do <b>nosso bot no X</b> custa a parte do X — hoje 100 sats — além dos 210 para o artista na via Wavlake; essa parte existe porque cada publicação no X por <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot</a> custa dinheiro real à estação, e cobre a conta do X e nada mais. O preço pode mudar consoante a volatilidade da bitcoin. O caminho para mais value-for-value está no <a href=\"/manifesto\">manifesto</a>.", "fundP5b": "Usaremos as suas doações e as taxas anti-spam ao nosso critério para manter as luzes acesas e para manter e substituir hardware quando for preciso. Obrigado pelo seu apoio. Gastaremos os seus sats, ganhos com esforço, com sensatez e frugalidade. O valor <b>\"dos quais restam\"</b> por baixo do contador na página inicial é o que ainda existe de facto no mealheiro offline e nas carteiras da estação em conjunto, mantido à mão pelo capitão.", "fundH23": "Autocustódia, sempre", "fundP6": "A rádio não é um banco. Os DJs convidados são incentivados — em voz alta — a definir o seu próprio Lightning Address para que os pagamentos nem sequer fiquem parados aqui, ou a esvaziar a sua carteira da rádio depois de cada sessão. Os sats pertencem a carteiras controladas pelos seus donos.", "fundP7": "Cada afirmação nesta página foi feita para resistir a uma verificação de factos. Viu algo errado? Diga-o <a href=\"https://t.me/noderunnersradio\">no Telegram<\/a> — o registo é corrigido, não defendido.", "topMenuManifesto": "Manifesto", "playBadgeOffline": "offline", "topMenuRoadmap": "Roteiro", "topMenuLogin": "Entrar", "topSiteMenu": "Menu do site", "langLabel": "Idioma", "topMenuProgress": "Progresso", "topMenuDjGuide": "Guia para DJs", "englishCounts": "Traduzido do inglês. Se algo for diferente, vale o texto em inglês.", "topCoords": "a emitir de águas internacionais", "playBadgeLive": "direto", "topSocialLinks": "Redes sociais", "topMenuHome": "Início", "fundGlanceH": "Num relance", "fundGlanceRaised": "sats angariados", "fundGlanceRemain": "dos quais restam", "fundGlanceDj": "pagos diretamente aos DJs convidados", "fundGlanceOg": "enviados diretamente aos artistas OG", "fundGlanceIn": "<b>Entradas:<\/b> doações, taxas de pedido da jukebox e zaps.", "fundGlanceOut": "<b>Saídas até agora:<\/b>", "fundGlanceOutTail": "sats — o angariado menos o que resta. Uma parte foi diretamente para DJs e artistas; o resto manteve o navio a navegar.", "fundGlanceNote": "Os valores angariados, de DJs e de artistas vêm dos registos de pagamento. O que resta, no mealheiro e nas carteiras da estação, é contado à mão pelo capitão.", "fundP5Len": "A taxa por pedido da <b>jukebox<\/b> para músicas da própria biblioteca do navio &mdash; 21 sats, um pouco mais se a música for longa &mdash; é puramente <b>anti-spam<\/b>. Um pedido pela via <b>Wavlake<\/b> custa 210 sats e é <b>value-for-value<\/b>, a funcionar desde julho de 2026: os 210 sats completos saem da carteira de passagem da estação, através da Wavlake, para o artista; o navio não fica com nada. Um pedido feito através do <b>nosso bot no X<\/b> custa a parte do X — hoje 100 sats — além dos 210 para o artista na via Wavlake; essa parte existe porque cada publicação no X por <a href=\"https://x.com/JukeboxLNDbot\">@JukeboxLNDbot<\/a> custa dinheiro real à estação, e cobre a conta do X e nada mais. O preço pode mudar consoante a volatilidade da bitcoin. O caminho para mais value-for-value está no <a href=\"/manifesto\">manifesto<\/a>."}
+    };
+    var LANG = 'en', hooks = [];
+    try {
+      var q = new URLSearchParams(location.search).get('lang');
+      var saved = null; try { saved = localStorage.getItem('nrLang'); } catch (e) {}
+      LANG = LANGS.indexOf(q) >= 0 ? q : (LANGS.indexOf(saved) >= 0 ? saved : 'en');
+    } catch (e) {}
+    function T(k) {
+      var d = I18N[LANG] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    // ONE pass with a function replacer: every slot is filled once, from the template only. A value (an
+    // artist, a title, a DJ name) is inserted literally -- a title that itself contains '{title}' or '$&'
+    // is never filled again or read as a pattern. (Slot-by-slot split/join got that wrong; scout B's
+    // equivalence tests caught it on 2026-09-11.)
+    function fill(s, map) {
+      return String(s).replace(/\{([A-Za-z0-9_]+)\}/g, function(m, k){
+        return Object.prototype.hasOwnProperty.call(map, k) ? String(map[k]) : m;
+      });
+    }
+    function each(sel, fn) { var n = document.querySelectorAll(sel); for (var i = 0; i < n.length; i++) fn(n[i]); }
+    function Tin(lang, k) {
+      var d = I18N[lang] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    var scratch = null;
+    function textOf(h) { scratch = scratch || document.createElement('div'); scratch.innerHTML = h; return scratch.textContent; }
+    function renderNav() {
+      var navs = document.querySelectorAll('.nrLang');
+      for (var n = 0; n < navs.length; n++) {
+        var nav = navs[n];
+        nav.setAttribute('aria-label', T('langLabel'));
+        // nr_langdd (2026-09-12, SF: "it takes up too much space"): ONE PILL with the current language; a tap opens
+        // the six rows under it (a native <details>: no script needed to open it). Every copy of the English flag
+        // gets its own clip-path ids: the nav number plus the row.
+        var flag = function(c, k){ return FLAGS[c].split('nrGb').join('nrGb' + n + k); };
+        var h = '<details class="nrDd"><summary lang="' + LANG + '" title="' + NAMES[LANG] + '">' + flag(LANG, 's') +
+                '<b>' + LANG.toUpperCase() + '</b><span class="nrCaret" aria-hidden="true">&#9662;</span></summary><div class="nrDdMenu">';
+        for (var i = 0; i < LANGS.length; i++) {
+          var c = LANGS[i], inner = flag(c, 'r' + i) + '<b>' + c.toUpperCase() + '</b><span class="nm">' + NAMES[c] + '</span>';
+          h += c === LANG
+            ? '<span class="cur" aria-current="true" lang="' + c + '" title="' + NAMES[c] + '">' + inner + '<span class="ck" aria-hidden="true">&#10003;</span></span>'
+            : '<a href="?lang=' + c + '" hreflang="' + c + '" lang="' + c + '" title="' + NAMES[c] + '" data-lang="' + c + '">' + inner + '</a>';
+        }
+        nav.innerHTML = h + '</div></details>';
+      }
+    }
+    // prev = the language the page shows right now. First load: 'en' (the markup). An English first load
+    // therefore rewrites nothing and runs no hooks. 'Soft' texts are defaults the page's own code
+    // overwrites with live state ('offline', 'connecting...'): they are replaced only while they still
+    // show the default, so a switch never clobbers live state -- that code writes its next update in the
+    // new language by itself. Hooks (nrI18nOnSwitch) redraw what code built, after every rewrite.
+    function applyLang(prev) {
+      document.documentElement.lang = LANG;
+      var rewrite = prev !== LANG;
+      if (rewrite) {
+        each('[data-i18n]', function(el){ el.textContent = T(el.getAttribute('data-i18n')); });
+        each('[data-i18n-html]', function(el){ el.innerHTML = T(el.getAttribute('data-i18n-html')); });
+        each('[data-i18n-attr]', function(el){
+          var parts = el.getAttribute('data-i18n-attr').split(';');
+          for (var i = 0; i < parts.length; i++) {
+            var j = parts[i].indexOf(':');
+            if (j > 0) el.setAttribute(parts[i].slice(0, j), T(parts[i].slice(j + 1)));
+          }
+        });
+        each('[data-i18n-soft]', function(el){
+          var k = el.getAttribute('data-i18n-soft');
+          if (el.textContent === Tin(prev, k)) el.textContent = T(k);
+        });
+        each('[data-i18n-soft-html]', function(el){
+          var k = el.getAttribute('data-i18n-soft-html');
+          if (el.textContent === textOf(Tin(prev, k))) el.innerHTML = T(k);
+        });
+      }
+      each('.nrEnCounts', function(el){ el.hidden = LANG === 'en'; });
+      renderNav();
+      if (rewrite) for (var h = 0; h < hooks.length; h++) { try { hooks[h](LANG, prev); } catch (e) {} }
+    }
+    function pickLang(c) {
+      if (LANGS.indexOf(c) < 0 || c === LANG) return;
+      var prev = LANG;
+      LANG = c;
+      try { localStorage.setItem('nrLang', c); } catch (e) {}
+      try {
+        var u = new URL(location.href);
+        if (c === 'en') u.searchParams.delete('lang'); else u.searchParams.set('lang', c);
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      } catch (e) {}
+      applyLang(prev);
+    }
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest ? e.target.closest('.nrLang a[data-lang]') : null;
+      if (!a) return;
+      e.preventDefault();
+      pickLang(a.getAttribute('data-lang'));
+    });
+    // nr_langdd: an open pill closes on a tap anywhere else, and on Escape (a pick re-renders it closed by itself)
+    document.addEventListener('click', function(e){
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) if (!open[i].contains(e.target)) open[i].removeAttribute('open');
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) open[i].removeAttribute('open');
+    });
+    window.T = T;
+    window.fill = fill;
+    window.nrLangNow = function(){ return LANG; };
+    window.nrLocale = function(){ return LOCALES[LANG]; };
+    window.nrI18nOnSwitch = function(fn){ if (typeof fn === 'function') hooks.push(fn); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ applyLang('en'); });
+    else applyLang('en');
+  })();
+</script>
+<script>
+(function(){
+  var b = document.getElementById('liveBadge'), t = document.getElementById('liveText');
+  if (!b) return;
+  function poll(){
+    fetch('/owncast-status', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      var on = !!(d && d.online === true);
+      b.classList.toggle('on', on);
+      t.textContent = on ? T('playBadgeLive') : T('playBadgeOffline');
+    }).catch(function(){});
+  }
+  poll(); setInterval(poll, 15000);
+})();
+</script>
+<script>
+  // nr_fundglance (2026-09-15): the same live figures the homepage rotates, read once from the station's public total.
+  (function(){
+    function put(id, n){ var el = document.getElementById(id); if (el) el.textContent = (typeof n === 'number') ? n.toLocaleString('en-US') : '—'; }
+    fetch('/api/donate/total', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      put('nrGlRaised', d.total_sats); put('nrGlRemain', d.remaining_sats); put('nrGlDj', d.dj_paid_sats); put('nrGlOg', d.og_paid_sats);
+      put('nrGlOut', (typeof d.total_sats === 'number' && typeof d.remaining_sats === 'number') ? Math.max(0, d.total_sats - d.remaining_sats) : null);
+    }).catch(function(){ ['nrGlRaised', 'nrGlRemain', 'nrGlDj', 'nrGlOg', 'nrGlOut'].forEach(function(id){ put(id, null); }); });
+  })();
+</script>
+<script>
+  // nr_pricemode (2026-09-15, SF: "make it adaptive for however the toggle stands on the captain's console everywhere"):
+  // the price sentences follow the station's pricing switch. With length pricing on, every element marked
+  // data-price-len shows its "Len" text -- in the language of the moment, and after every language switch.
+  (function(){
+    fetch('/api/stats', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      if (!d || d.pricing !== 'length') return;
+      var els = document.querySelectorAll('[data-price-len]');
+      for (var i = 0; i < els.length; i++){
+        var el = els[i], k = el.getAttribute('data-price-len');
+        if (el.hasAttribute('data-i18n-html')){ el.setAttribute('data-i18n-html', k); if (window.T) el.innerHTML = T(k); }
+        else if (el.hasAttribute('data-i18n')){ el.setAttribute('data-i18n', k); if (window.T) el.textContent = T(k); }
+      }
+    }).catch(function(){});
+  })();
+</script>
+<script src="/assets/nr-edit.js" defer></script>
+</body>
+</html>

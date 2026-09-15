@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Noderunners Radio — Live Overlay</title>
+<style>
+  /* OBS browser-source overlay. Body stays TRANSPARENT so it rides on the video.
+     Open with ?demo=1 in a normal browser to see it composited on a fake feed. */
+  :root{
+    --signal:#f7931a; --signal-2:#d06b29; --foam:#e6eff0; --foam-dim:#8aa4aa;
+    --ether:#0a1a1f; --line:#1d3a42; --water:#7adcff;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ width:100%; height:100%; background:transparent; overflow:hidden;
+    font-family: ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace; }
+
+  body.demo{
+    background:
+      radial-gradient(ellipse at 30% 20%, #24505c, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, #143038, transparent 55%),
+      linear-gradient(160deg, #0d2129, #081418);
+  }
+  body.demo::after{
+    content:"DEMO — this is what OBS paints over the video feed";
+    position:fixed; top:12px; left:50%; transform:translateX(-50%);
+    color:var(--foam-dim); font-size:14px; letter-spacing:.12em; text-transform:uppercase;
+    border:1px dashed var(--foam-dim); border-radius:6px; padding:4px 14px; opacity:.7;
+  }
+
+  .shadowed{ text-shadow:0 2px 8px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.9); }
+
+  /* ---- QR block, top right ---- */
+  #qrBox{
+    position:fixed; top:24px; right:24px; text-align:center;
+    background:rgba(10,26,31,.72); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px 10px; backdrop-filter:blur(2px);
+  }
+  #qrBox .lbl{ color:#000; background:#fff; border-radius:4px; padding:2px 6px; font-size:15px; font-weight:700; letter-spacing:.14em;
+    text-transform:uppercase; margin-bottom:8px; }
+  #qr{ background:#fff; padding:8px; border-radius:6px; display:inline-block; }
+  #qr img, #qr canvas{ display:block; }
+  #qrBox .addr{ color:var(--foam); font-size:13px; margin-top:7px; }
+
+  /* ---- DJ crew row, top left ---- */
+  #crew{
+    position:fixed; left:24px; top:24px;
+    display:flex; gap:18px; align-items:flex-start;
+  }
+  .dj{ text-align:center; width:96px; }
+  .dj .disc{
+    width:76px; height:76px; margin:0 auto; border-radius:50%;
+    border:3px solid var(--signal-2); background:#10262d;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--foam); font-weight:700; font-size:26px;
+    box-shadow:0 4px 14px rgba(0,0,0,.6);
+    transition: box-shadow .3s, border-color .3s, transform .3s;
+  }
+  .dj .nm{ margin-top:7px; color:var(--foam); font-size:13px; font-weight:700; }
+  .dj .disc img{ width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; }
+  .dj.lit .disc{
+    border-color:var(--signal);
+    box-shadow:0 0 26px 6px rgba(247,147,26,.75), 0 4px 14px rgba(0,0,0,.6);
+    transform:translateY(-6px);
+    animation:djpulse 1s ease-in-out 3;
+  }
+  @keyframes djpulse{ 50%{ transform:translateY(-10px) scale(1.06); } }
+  /* the DJ currently on deck: bigger, glowing, alive */
+  .dj.onair .disc{
+    width:100px; height:100px; font-size:34px;
+    border-color:var(--signal);
+    animation:onairglow 1.7s ease-in-out infinite;
+  }
+  .dj.onair .nm{ color:var(--signal); font-size:14px; }
+  .dj .oa{ display:none; font-size:10px; letter-spacing:.14em; color:var(--signal);
+    font-weight:700; margin-top:3px; text-transform:uppercase; }
+  .dj.onair .oa{ display:block; animation:oablink 1.7s ease-in-out infinite; }
+  @keyframes onairglow{ 0%,100%{ box-shadow:0 0 14px 3px rgba(247,147,26,.5); transform:scale(1); }
+    50%{ box-shadow:0 0 34px 10px rgba(247,147,26,.85); transform:scale(1.045); } }
+  @keyframes oablink{ 50%{ opacity:.55; } }
+  /* every few minutes the on-air DJ takes a spin around the vertical axis */
+  .dj.spinY{ animation:spinY 1.5s ease-in-out; }
+  @keyframes spinY{ to{ transform:rotateY(360deg); } }
+  /* station brand, bottom left */
+  #brand{ position:fixed; left:24px; bottom:96px; height:54px; opacity:.95;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,.95)) drop-shadow(0 6px 18px rgba(0,0,0,.7)); }
+
+  /* ---- donation alert, center ---- */
+  #alert{
+    position:fixed; left:50%; top:34%; transform:translate(-50%,-50%) scale(.8);
+    opacity:0; pointer-events:none; text-align:center;
+    transition:opacity .35s, transform .35s;
+  }
+  #alert.show{ opacity:1; transform:translate(-50%,-50%) scale(1); }
+  #alert .amt{ color:var(--signal); font-size:64px; font-weight:800; letter-spacing:.02em; }
+  #alert.show .amt{ animation:pop .55s cubic-bezier(.2,2.2,.55,1); }
+  @keyframes pop{ 0%{ transform:scale(.3); } 70%{ transform:scale(1.15); } 100%{ transform:scale(1); } }
+
+  /* ---- festive: sat rain + flash ---- */
+  .sat{ position:fixed; top:-50px; pointer-events:none; z-index:5;
+    text-shadow:0 2px 8px rgba(0,0,0,.75); animation:satfall linear forwards; }
+  @keyframes satfall{ to{ transform:translateY(115vh) rotate(340deg); opacity:.85; } }
+  #flash{ position:fixed; inset:0; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at 50% 35%, rgba(247,147,26,.45), transparent 62%); }
+  #flash.go{ animation:flashgo .8s ease-out; }
+  @keyframes flashgo{ 12%{ opacity:1; } 100%{ opacity:0; } }
+  #alert .who{ color:var(--foam); font-size:28px; font-weight:700; margin-top:6px; }
+  #alert .msg{ color:var(--foam); font-size:20px; margin-top:8px; max-width:720px;
+    font-style:italic; opacity:.95; }
+  /* message-first: when a donation carries words, the words are the headline.
+     nr_msgpop (2026-09-10, SF watching a live set: "the messages need to pop more, be more clear on
+     the video feed"). It was text and nothing else over a DJ booth -- bright, saturated, moving, and
+     different every second. A single shadow cannot win against that.
+     THE PLATE IS NOT INVENTED: #reqNote below already puts a listener's note on a dark bordered
+     panel and is legible over anything. The donation alert simply never got the same treatment, so
+     it gets it now and the two finally look like one station.
+     The plate and the border are what carry it, so this reads with the colour taken out -- which is
+     the point, because stage lighting effectively does take it out. */
+  /* nr_glass (2026-09-10, SF on the demo: "looks better but should have transparency"). The slab
+     becomes glass. The BLUR is what makes transparency survivable -- it smears whatever is behind
+     into an even ground, so the words keep a quiet backing while the booth still shows through.
+     Transparency without it would just put the lettering back on a busy picture, which is the
+     fault this started as. */
+  #alert.msgfirst{ display:flex; flex-direction:column; align-items:center;
+    padding:24px 36px; border-radius:18px;
+    background:rgba(0,0,0,.52);
+    -webkit-backdrop-filter:blur(8px) saturate(1.15);
+    backdrop-filter:blur(8px) saturate(1.15);
+    border:3px solid var(--signal);
+    box-shadow:0 14px 48px rgba(0,0,0,.7), 0 0 0 2px rgba(0,0,0,.45);
+    max-width:min(1100px, 86vw); }
+  /* an old CEF with no backdrop-filter falls back to a flatter plate -- the worst case is what
+     shipped an hour ago, never unreadable text over the booth. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    #alert.msgfirst{ background:rgba(0,0,0,.72); }
+  }
+  #alert.msgfirst .msg{ order:1; font-weight:800; font-style:normal; opacity:1;
+    max-width:1000px; line-height:1.22; color:#fff;
+    text-shadow:0 2px 4px rgba(0,0,0,.95), 0 4px 18px rgba(0,0,0,.8); }
+  #alert.msgfirst .who{ order:2; font-size:30px; font-weight:700; margin-top:10px;
+    text-shadow:0 2px 4px rgba(0,0,0,.95); }
+  #alert.msgfirst .amt{ order:3; font-weight:800; opacity:1; margin-top:4px;
+    text-shadow:0 2px 4px rgba(0,0,0,.95); }
+  #alert.msgfirst.show .amt{ animation:none; }
+  #alert.msgfirst.show .msg{ animation:pop .55s cubic-bezier(.2,2.2,.55,1); }
+
+  /* ---- request note: a listener's fortune-cookie note, shown while their track is on air ---- */
+  #reqNote{ position:fixed; left:50%; bottom:110px; transform:translate(-50%,20px); max-width:900px;
+    padding:10px 18px; border:3px solid var(--foam); border-radius:12px; background:rgba(0,0,0,.72);
+    color:var(--foam); font-size:26px; font-weight:800; line-height:1.25; text-align:center;
+    opacity:0; transition:opacity .4s, transform .4s; pointer-events:none; }
+  #reqNote.show{ opacity:1; transform:translate(-50%,0); }
+  #reqNote .who{ display:block; font-size:16px; font-weight:600; opacity:.9; margin-top:4px; }
+  #reqNote .tag{ display:block; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700; color:var(--signal); margin-bottom:4px; }
+  /* ---- water current along the bottom ---- */
+  #flow{
+    position:fixed; left:0; right:0; bottom:0; height:10px; opacity:0; transition:opacity .5s;
+    background:repeating-linear-gradient(100deg,
+      rgba(122,220,255,.05) 0 14px, rgba(122,220,255,.5) 14px 28px);
+  }
+  #flow.on{ opacity:1; animation:flowmove .8s linear infinite; }
+  @keyframes flowmove{ from{ transform:translateX(-28px);} to{ transform:translateX(0);} }
+  /* session pot under the QR: bold number carries the meaning, bumps when it grows */
+  #potLine .num{ display:inline-block; font-weight:800; font-size:19px; }
+  #potLine .num.bump{ animation:pop .55s cubic-bezier(.2,2.2,.55,1); }
+</style>
+</head>
+<body>
+
+  <div id="qrBox">
+    <div class="lbl">⚡ Tip the session</div>
+    <div id="qr"></div>
+    <div class="addr shadowed">dreadnode@lnbits.plebprojects.com</div>
+    <div id="viewPill" style="display:none; align-items:center; justify-content:center; gap:7px; margin-top:9px;
+      color:#e6eff0; font-size:17px; font-weight:700; letter-spacing:0.04em;">
+      <span aria-hidden="true">👁</span><span id="viewN">0</span>
+    </div>
+    <div id="potLine" style="display:none; justify-content:center; align-items:baseline; gap:6px; margin-top:8px;
+      color:#e6eff0; font-size:15px; letter-spacing:0.04em;">
+      <span class="num" id="potN">0</span><span style="opacity:.85;">sats &mdash; session pot</span>
+    </div>
+  </div>
+
+  <div id="crew"></div>
+  <div id="hostTag" style="display:none; position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    background:rgba(8,20,24,0.82); border:1px solid rgba(247,147,26,0.55); border-radius:999px;
+    padding:6px 18px; color:#e6eff0; font-size:16px; font-weight:700; letter-spacing:0.05em;"></div>
+
+  <div id="alert">
+    <div class="amt shadowed"></div>
+    <div class="who shadowed"></div>
+    <div class="msg shadowed"></div>
+  </div>
+
+  <img id="brand" src="/assets/logo.svg" alt="">
+
+  <div id="flash"></div>
+  <div id="reqNote" class="shadowed"></div>
+  <div id="flow"></div>
+
+<script src="/assets/qrcode.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var DEMO = /[?&]demo=1/.test(location.search);
+  if (DEMO) document.body.classList.add("demo");
+
+  // static LNURL for the stage wallet's dreadnode pay link (anonymous QR donations)
+  var LNURL = "LNURL1DP68GURN8GHJ7MRWVF5HGUEWWPKX2CNSWFHK5ETRW3EJUCM0D5HJUAM9D3KZ66MWDAMKUTMVDE6HYMRS9AJ8YETPV3HX7ER9J9P2LX";
+  if (window.QRCode) new QRCode(document.getElementById("qr"),
+    { text: "lightning:" + LNURL, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+
+  function esc(s){ return String(s||"").replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+  // ---- crew row from the public pool status ----
+  var crewEl = document.getElementById("crew");
+  var avMap = {};
+  function pollAvatars(){
+    fetch("/dj/avatars").then(function(r){ return r.json(); })
+      .then(function(m){ avMap = m || {}; }).catch(function(){});
+  }
+  function renderCrew(names, nowDjs){
+    crewEl.innerHTML = "";
+    (names || []).forEach(function(n){
+      var initials = n.replace(/^TEST /i,"").split(/\s+/).map(function(w){ return w[0]||""; })
+        .join("").slice(0,2).toUpperCase() || "DJ";
+      var disc = avMap[n] ? '<img src="' + esc(avMap[n]) + '" alt="">' : esc(initials);
+      var d = document.createElement("div");
+      d.className = "dj" + ((nowDjs || []).indexOf(n) !== -1 ? " onair" : "");
+      d.innerHTML = '<div class="disc">' + disc + '</div><div class="nm shadowed">' + esc(n) +
+        '</div><div class="oa shadowed">&#9654; on air</div>';
+      crewEl.appendChild(d);
+    });
+  }
+  function pollCrew(){
+    fetch("/api/livesplit").then(function(r){ return r.json(); }).then(function(d){
+      if (d && d.live && d.djs && d.djs.length){
+        var nd = d.now_djs || (d.now_dj ? [d.now_dj] : []);
+        renderCrew(d.djs, nd);
+        var key = nd.join("|");
+        if (key && key !== lastNowDj){ lastNowDj = key; spinOnAir(); }
+        else { lastNowDj = key; }
+      }
+      else if (!DEMO) crewEl.innerHTML = "";
+      updatePot(d);
+    }).catch(function(){});
+  }
+  // session pot under the QR -- same livesplit poll, no extra requests
+  var potLineEl = document.getElementById("potLine"),
+      potNEl = document.getElementById("potN"), lastPot = null;
+  function updatePot(d){
+    var on = !!(d && d.live && d.pot_sats != null);
+    potLineEl.style.display = on ? "flex" : "none";
+    if (!on){ lastPot = null; return; }
+    if (d.pot_sats !== lastPot){
+      potNEl.textContent = d.pot_sats.toLocaleString();
+      if (lastPot != null && d.pot_sats > lastPot){
+        potNEl.classList.remove("bump"); void potNEl.offsetWidth; potNEl.classList.add("bump");
+      }
+      lastPot = d.pot_sats;
+    }
+  }
+
+  // the on-air DJ takes a spin: once when crowned, then every few minutes
+  var lastNowDj = null;
+  function spinOnAir(){
+    Array.prototype.forEach.call(crewEl.querySelectorAll(".dj.onair"), function(el){
+      el.classList.remove("spinY"); void el.offsetWidth; el.classList.add("spinY");
+    });
+  }
+  setInterval(spinOnAir, 150000);
+
+  // ---- request note: while a listener's requested track is on air, its note rides the bottom ----
+  var reqEl = document.getElementById("reqNote"), lastReqKey = "";
+  function pollNote(){
+    fetch("/api/nowplaying", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+      var np = d && d.now_playing;
+      var note = (np && np.requested && np.note) ? String(np.note).trim().slice(0, 80) : "";
+      var who = (note && np.who) ? String(np.who).trim().slice(0, 24) : "";
+      var key = note ? (np.req_id || "") + "|" + note + "|" + who : "";
+      if (key === lastReqKey) return;
+      lastReqKey = key;
+      if (!note){ reqEl.classList.remove("show"); return; }
+      reqEl.innerHTML = '<span class="tag">' + (np.lane === "gift" ? "on the house" : "&#9889; requested") +
+        '</span>&ldquo;' + esc(note) + '&rdquo;' + (who ? '<span class="who">&mdash; ' + esc(who) + '</span>' : '');
+      reqEl.classList.remove("show"); void reqEl.offsetWidth; reqEl.classList.add("show");
+    }).catch(function(){});
+  }
+  setInterval(pollNote, 15000); pollNote();
+
+  // ---- donation alerts from the public recent feed ----
+  var alertEl = document.getElementById("alert");
+  var flowEl = document.getElementById("flow");
+  var seen = {}, baselined = false, queue = [], showing = false;
+
+  function keyOf(d){ return d.ts + "|" + d.sats + "|" + (d.name||"") ; }
+
+  function pollDonations(){
+    fetch("/api/donate/recent").then(function(r){ return r.json(); }).then(function(d){
+      var list = (d && d.donations) || [];
+      if (!baselined){ list.forEach(function(x){ seen[keyOf(x)] = true; }); baselined = true; return; }
+      list.slice().reverse().forEach(function(x){
+        var k = keyOf(x);
+        if (!seen[k]){ seen[k] = true; queue.push(x); }
+      });
+      pump();
+    }).catch(function(){});
+  }
+
+  var flashEl = document.getElementById("flash");
+
+  function rain(n){
+    var chars = ["⚡","₿","⚡","🪙","⚡"];
+    for (var i = 0; i < n; i++){
+      var s = document.createElement("span");
+      s.className = "sat";
+      s.textContent = chars[Math.floor(Math.random() * chars.length)];
+      s.style.left = (Math.random() * 100) + "vw";
+      s.style.fontSize = (18 + Math.random() * 26) + "px";
+      s.style.animationDuration = (1.8 + Math.random() * 1.8) + "s";
+      s.style.animationDelay = (Math.random() * 1.1) + "s";
+      document.body.appendChild(s);
+      s.addEventListener("animationend", function(){ this.remove(); });
+    }
+  }
+
+  function pump(){
+    if (showing || !queue.length) return;
+    showing = true;
+    var d = queue.shift();
+    var big = d.sats >= 1000, whale = d.sats >= 10000;
+    var msgTxt = (d.message == null ? "" : String(d.message)).trim();
+    var hasMsg = msgTxt.length > 0;
+    alertEl.classList.toggle("msgfirst", hasMsg);
+    var amtEl = alertEl.querySelector(".amt");
+    amtEl.textContent = "+" + d.sats.toLocaleString() + " sats ⚡";
+    amtEl.style.fontSize = hasMsg ? "30px" : (whale ? "104px" : big ? "84px" : "64px");
+    alertEl.querySelector(".who").textContent = d.name ? "from " + d.name : "anonymous current detected";
+    var msgEl = alertEl.querySelector(".msg");
+    msgEl.textContent = hasMsg ? "“" + msgTxt + "”" : "";
+    // nr_msgpop: every step up. A 210-sat tip with a short line was 44px and got lost; it is 54px
+    // on a plate now. The long-message floor rises too, because a wrapped message on a busy feed is
+    // exactly the one that was hardest to read.
+    msgEl.style.fontSize = hasMsg ? ((msgTxt.length > 90 ? 40 : whale ? 74 : big ? 64 : 54) + "px") : "";
+    alertEl.classList.add("show");
+    flowEl.classList.add("on");
+    document.querySelectorAll(".dj").forEach(function(el){ el.classList.add("lit"); });
+    // festive: sat rain scales with the gift; flash for the big ones
+    rain(Math.min(90, Math.max(16, Math.round(d.sats / 40))));
+    if (big){
+      flashEl.classList.remove("go"); void flashEl.offsetWidth; flashEl.classList.add("go");
+    }
+    setTimeout(function(){
+      alertEl.classList.remove("show");
+      flowEl.classList.remove("on");
+      document.querySelectorAll(".dj").forEach(function(el){ el.classList.remove("lit"); });
+      setTimeout(function(){ showing = false; pump(); }, 700);
+    }, hasMsg ? 10000 : 8000);
+  }
+
+  pollAvatars(); pollCrew(); pollDonations();
+  setInterval(pollCrew, 15000);
+  setInterval(pollAvatars, 60000);
+  setInterval(pollDonations, 5000);
+
+  // ---- demo mode: fake crew + fake donations (press D, or auto every 14s) ----
+  if (DEMO){
+    var demoCrew = ["Neptune","Tsunami","Kraken","Siren","Maelstrom"];
+    renderCrew(demoCrew, [demoCrew[0]]);
+    baselined = true;
+    var demoNames = ["Gertam","anon","PlebFan21","", "SatsSurfer"];
+    var demoMsgs = ["play it louder!","", "greetings from the high seas","V4V baby","" ];
+    var i = 0;
+    function fake(){
+      queue.push({ ts: Date.now(), sats: [21,210,1000,2100,5000][i%5],
+                   name: demoNames[i%5], message: demoMsgs[i%5] });
+      i++;
+      renderCrew(demoCrew, [demoCrew[i % demoCrew.length]]);  // rotate the on-air spotlight
+      pump();
+    }
+    setInterval(fake, 14000);
+    document.addEventListener("keydown", function(e){ if (e.key === "d" || e.key === "D") fake(); });
+    setTimeout(fake, 1200);
+  }
+})();
+</script>
+<script>
+(function(){
+  var pill = document.getElementById("viewPill"), n = document.getElementById("viewN");
+  function poll(){
+    fetch("/owncast-status", {cache: "no-store"}).then(function(r){ return r.json(); }).then(function(d){
+      var on = !!(d && d.online === true);
+      if (on && typeof d.viewerCount === "number"){ n.textContent = d.viewerCount; pill.style.display = "flex"; }
+      else pill.style.display = "none";
+    }).catch(function(){});
+  }
+  poll(); setInterval(poll, 15000);
+  var params = new URLSearchParams(location.search);
+  var hostName = params.get('host') || params.get('Host');
+  if (hostName){
+    var t = document.getElementById('hostTag');
+    t.textContent = '⚓ hosted by ' + hostName.slice(0, 40);
+    t.style.display = 'block';
+  }
+})();
+</script>
+<!-- Telegram chat strip (SF mid-sesh 2026-07-30): the crew's words ride the
+     picture. Bottom-center, last 3 text messages, black outline for
+     readability on any footage. Fails silent -- a dead API never marks the
+     video. Media-only messages are skipped. -->
+<div id="nrChatStrip" style="position:fixed;right:24px;bottom:96px;width:430px;font-family:'Courier New',monospace;pointer-events:none;text-align:left;background:rgba(10,26,31,.72);border:1px solid #1d3a42;border-radius:10px;padding:10px 12px;backdrop-filter:blur(2px);display:none;"></div>
+<script>
+(function(){
+  var box = document.getElementById('nrChatStrip');
+  function esc(s){ var d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; }
+  function poll(){
+    fetch('/api/chat/recent', {cache:'no-store'})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d && d.feed_hidden){ box.innerHTML = ''; box.style.display = 'none'; return; }  // captain's brake
+        // text OR media (SF's ask 2026-08-01: the crew's GIFs ride the picture)
+        var msgs = ((d && d.messages) || []).filter(function(m){
+          return (m.text || '').trim() || (m.media && m.media.file_id);
+        });
+        box.innerHTML = msgs.slice(-3).map(function(m){
+          var med = '';
+          if (m.media && m.media.file_id){
+            var src = '/api/chat/media?file_id=' + encodeURIComponent(m.media.file_id);
+            if (m.media.kind === 'animation' || m.media.kind === 'video'){
+              // Telegram GIFs are silent mp4 loops
+              med = '<video src="' + esc(src) + '" autoplay loop muted playsinline ' +
+                'style="display:block;margin-top:4px;max-width:100%;max-height:150px;border-radius:6px;"></video>';
+            } else if (m.media.kind === 'photo'){
+              med = '<img src="' + esc(src) + '" alt="" ' +
+                'style="display:block;margin-top:4px;max-width:100%;max-height:150px;border-radius:6px;">';
+            }
+          }
+          return '<div style="margin-top:3px;font-size:18px;line-height:1.3;word-break:break-word;color:#fff;' +
+            'text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000,0 0 8px #000;">' +
+            '<span style="color:#f5a623;font-weight:bold;">' + esc(m.username || '?') + ':</span> ' +
+            esc(m.text || '') + med + '</div>';
+        }).join('');
+        box.style.display = msgs.length ? 'block' : 'none';
+      }).catch(function(){});
+  }
+  poll(); setInterval(poll, 5000);
+})();
+</script>
+<script>
+/* Drag & drop layout (SF 2026-07-30). Normal mode: poll the saved venue
+   layout every 10 s and apply it -- OBS follows the captain's hand within
+   seconds, no refresh needed. ?edit=1: drag the four blocks, hit SAVE (needs
+   the captain's console login in the same browser). ?venue=name = per venue. */
+(function(){
+  var VENUE = (/[?&]venue=([A-Za-z0-9_-]+)/.exec(location.search) || [0, "default"])[1].toLowerCase();
+  var EDIT = /[?&]edit=1/.test(location.search);
+  var IDS = ["qrBox", "crew", "brand", "nrChatStrip"];
+  var cur = {};
+  function apply(lay){
+    IDS.forEach(function(id){
+      var p = lay[id], el = document.getElementById(id);
+      if (!p || !el) return;
+      el.style.left = p.x + "%"; el.style.top = p.y + "%";
+      el.style.right = "auto"; el.style.bottom = "auto";
+      el.style.transformOrigin = "top left";
+      el.style.transform = (p.s && p.s !== 1) ? "scale(" + p.s + ")" : "none";
+    });
+  }
+  function fetchLayout(){
+    fetch("/api/overlay/layout?venue=" + VENUE, {cache: "no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(lay){ if (lay && typeof lay === "object"){ cur = lay; apply(lay); } })
+      .catch(function(){});
+  }
+  fetchLayout();
+  if (!EDIT){
+    setInterval(fetchLayout, 10000);
+    // nr_selfrefresh (2026-09-10, SF: "I don't want to bother the Host nor DJ nor OBS operator, can
+    // we make the change?"). OBS holds the copy of this page it loaded, and nothing on the server can
+    // restyle it -- fetchLayout moves four boxes and carries no styling. So the page watches its own
+    // file and reloads when it changes. From the next load on, an overlay change lands by itself.
+    //
+    // A reload during a set is a visible blink, so it is fenced three ways: only when nothing is on
+    // screen, only when the ETag has genuinely changed, and never in the first 90 seconds -- which
+    // stops a restart from looping if a proxy ever serves a moving ETag.
+    (function(){
+      var born = Date.now(), tag = null;
+      function idle(){
+        var a = document.getElementById("alert"), n = document.getElementById("reqNote");
+        if (a && a.classList.contains("show")) return false;
+        if (n && n.classList.contains("show")) return false;
+        return true;
+      }
+      function check(){
+        fetch(location.pathname, {method: "HEAD", cache: "no-store"}).then(function(r){
+          var t = r.headers.get("ETag") || r.headers.get("Last-Modified");
+          if (!t) return;                       // nothing to compare: never reload on a guess
+          if (tag === null){ tag = t; return; }
+          if (t === tag) return;
+          if (Date.now() - born < 90000) return;
+          if (!idle()) return;                  // it will still differ on the next tick
+          location.reload();
+        }).catch(function(){});
+      }
+      check(); setInterval(check, 60000);
+    })();
+    return;
+  }
+  var note = document.createElement("div");
+  note.style.cssText = "position:fixed;top:46%;left:50%;transform:translate(-50%,-50%);z-index:99;background:#fff;color:#000;font:700 16px monospace;padding:12px 18px;border-radius:8px;text-align:center;";
+  note.textContent = "EDIT MODE (" + VENUE + ") — drag to move · tap a block, then the size buttons · SAVE";
+  var sel = null;
+  function ensure(id){
+    if (!cur[id]){
+      var e2 = document.getElementById(id), r2 = e2.getBoundingClientRect();
+      cur[id] = { x: r2.left / innerWidth * 100, y: r2.top / innerHeight * 100 };
+    }
+    if (!cur[id].s) cur[id].s = 1;
+    return cur[id];
+  }
+  var sizeRow = document.createElement("div");
+  sizeRow.style.cssText = "margin:10px 0 0;font:700 13px monospace;";
+  sizeRow.innerHTML = '<span id="selName">tap a block to select it</span><br>' +
+    '<button type="button" id="szMinus" style="padding:9px 18px;margin:8px 8px 0 0;font:700 16px monospace;border:2px solid #000;background:#fff;color:#000;border-radius:6px;cursor:pointer;">smaller &minus;</button>' +
+    '<button type="button" id="szPlus" style="padding:9px 18px;margin:8px 0 0 0;font:700 16px monospace;border:2px solid #000;background:#000;color:#fff;border-radius:6px;cursor:pointer;">BIGGER +</button>';
+  note.appendChild(sizeRow);
+  function showSel(){
+    document.getElementById("selName").textContent =
+      sel ? (sel + " — size " + Math.round(((cur[sel] && cur[sel].s) || 1) * 100) + "%") : "tap a block to select it";
+  }
+  function resize(step){
+    if (!sel) return;
+    var p = ensure(sel);
+    p.s = Math.max(0.4, Math.min(2, Math.round((p.s + step) * 10) / 10));
+    showSel();
+    apply(cur);
+  }
+  sizeRow.addEventListener("click", function(ev){
+    if (ev.target.id === "szPlus") resize(0.1);
+    if (ev.target.id === "szMinus") resize(-0.1);
+  });
+  var btn = document.createElement("button");
+  btn.textContent = "SAVE LAYOUT";
+  btn.style.cssText = "display:block;margin:10px auto 0;padding:9px 16px;font:700 14px monospace;background:#f7931a;border:none;border-radius:6px;cursor:pointer;";
+  note.appendChild(btn);
+  document.body.appendChild(note);
+  IDS.forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.pointerEvents = "auto"; el.style.cursor = "move"; el.style.outline = "2px dashed #f7931a";
+    el.addEventListener("pointerdown", function(ev){
+      ev.preventDefault();
+      var r = el.getBoundingClientRect(), ox = ev.clientX - r.left, oy = ev.clientY - r.top;
+      sel = id;
+      showSel();
+      function mv(e){
+        cur[id] = { x: Math.max(0, Math.min(97, (e.clientX - ox) / innerWidth * 100)),
+                    y: Math.max(0, Math.min(95, (e.clientY - oy) / innerHeight * 100)),
+                    s: (cur[id] && cur[id].s) || 1 };
+        apply(cur);
+      }
+      function up(){ removeEventListener("pointermove", mv); removeEventListener("pointerup", up); }
+      addEventListener("pointermove", mv); addEventListener("pointerup", up);
+    });
+  });
+  btn.addEventListener("click", function(){
+    var body = "venue=" + VENUE + "&layout=" + encodeURIComponent(JSON.stringify(cur));
+    function post(url){ return fetch(url, { method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: body }); }
+    post("/api/admin/overlay/layout").then(function(r){
+      /* captain's console cookie works as before; a 403 means no console --
+         try the HOST door, which accepts a host's DJ-portal login instead */
+      if (r.status === 403) return post("/dj/portal/overlaysave");
+      return r;
+    }).then(function(r){ return r.json(); })
+      .then(function(d){ btn.textContent = d.saved ? "SAVED — OBS follows in ~10 s" : ("⚠ " + (d.error || "not saved")); })
+      .catch(function(){ btn.textContent = "⚠ network error — try again"; });
+  });
+})();
+</script>
+</body>
+</html>

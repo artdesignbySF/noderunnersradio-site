@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title data-i18n="obsTitle">OBS Operator Guide · Noderunners Radio</title>
+<link rel="icon" href="/assets/favicon.ico?v=2" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=2">
+<style>
+  :root{
+    --ether:#0a1a1f; --ether-2:#0f262d; --signal:#f7931a; --signal-2:#d06b29;
+    --signal-dim:#b86d12; --foam:#e6eff0; --foam-dim:#8aa4aa; --line:#1d3a42;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--ether); color:var(--foam);
+    font-family: ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    line-height:1.6; padding:0 20px 72px; }
+  .wrap{ max-width:720px; margin:0 auto; }
+  a{ color:var(--signal); }
+  header{ padding:40px 0 18px; text-align:center; border-bottom:1px solid var(--line); }
+  .eyebrow{ font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--signal); margin-bottom:12px; }
+  h1{ font-size:clamp(1.6rem,5vw,2.4rem); font-weight:700; line-height:1.1; }
+  .sub{ color:var(--foam-dim); margin-top:10px; font-size:.9rem; }
+  h2{ font-size:1.05rem; font-weight:700; color:var(--signal); margin:34px 0 10px;
+    letter-spacing:.04em; text-transform:uppercase; }
+  p{ margin:0 0 12px; }
+  b{ color:var(--foam); }
+  .mono{ background:rgba(55,82,90,.28); border:1px solid var(--line); border-radius:4px;
+    padding:1px 6px; font-size:.92em; word-break:break-all; }
+  ol{ margin:0 0 14px 1.3em; }
+  ol li{ margin-bottom:10px; }
+  ul{ margin:0 0 14px 1.2em; }
+  ul li{ margin-bottom:8px; }
+  .check{ background:var(--ether-2); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin:12px 0; }
+  .warn{ border-left:3px solid var(--signal); border-radius:0 4px 4px 0;
+    background:rgba(247,147,26,.08); padding:11px 13px; margin:12px 0; font-size:.92rem; }
+  .muted{ color:var(--foam-dim); }
+  table{ width:100%; border-collapse:collapse; margin:10px 0 16px; font-size:.9rem; }
+  td{ border-bottom:1px solid var(--line); padding:8px 6px; vertical-align:top; }
+  td:first-child{ color:var(--foam-dim); white-space:nowrap; padding-right:14px; }
+
+  html{ background:var(--ether,#0a1a1f); }
+  body{ background:transparent; }
+  body::before{ content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:url("/assets/ship-bg.jpg") center 20% / cover no-repeat; opacity:0.14;
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent);
+            mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent); }
+  body::after{ content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(ellipse at 20% 0%, rgba(247,147,26,0.06), transparent 55%); }
+
+  header.sitehead { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:22px 0 16px; border-bottom:1px solid var(--line); }
+  .header-left { grid-column:1; justify-self:start; display:flex; align-items:center; gap:12px; }
+  .hd-avatar { width:48px; height:48px; border-radius:50%; border:2px solid var(--signal-2, #d06b29); background:#000; }
+  .brand { display:flex; flex-direction:column; align-items:center; gap:6px; grid-column:2; }
+  .brand .logo { height:38px; width:auto; }
+  .brand .coords { font-size:0.62rem; color:var(--foam-dim); letter-spacing:0.14em; text-transform:uppercase; text-align:center; }
+  .socials { grid-column:3; justify-self:end; display:inline-flex; gap:6px; }
+  .socials a { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--line); border-radius:6px; color:var(--foam-dim); transition:.15s; }
+  .socials a:hover { color:var(--signal); border-color:var(--signal-dim, #b86d12); background:rgba(247,147,26,0.06); }
+  .socials a svg { width:16px; height:16px; }
+/* nr_header_mobile (2026-09-14): narrow screens -- avatar+badge left, socials right, wordmark on its own row under them.
+   Desktop untouched. Same fix as the homepage. */
+@media (max-width: 720px) {
+  header.sitehead { grid-template-columns:1fr auto; grid-template-areas:"left socials" "brand brand"; gap:10px; padding:16px 0 12px; }
+  header.sitehead .header-left { grid-area:left; }
+  header.sitehead .socials { grid-area:socials; }
+  header.sitehead .brand { grid-area:brand; justify-self:center; }
+  header.sitehead .brand .logo { height:auto; width:240px; max-width:calc(100vw - 40px); }
+}
+@media (max-width: 400px) {
+  header.sitehead .socials a { width:30px; height:30px; }
+  header.sitehead .socials a svg { width:14px; height:14px; }
+  header.sitehead .header-left { gap:8px; }
+  header.sitehead .live-dot { letter-spacing:.08em; }
+  header.sitehead .socials { gap:4px; }
+  .hd-avatar { width:44px; height:44px; }
+}
+  .live-dot { display:inline-flex; align-items:center; gap:8px; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--foam-dim); }
+  .live-dot .dot { width:9px; height:9px; border-radius:50%; background:var(--foam-dim); }
+  .live-dot.on { color:var(--signal); }
+  .live-dot.on .dot { background:var(--signal); }
+
+  /* nr_i18n (2026-09-11) + nr_langdd (2026-09-12, SF: "it takes up too much space"): the language switch is ONE
+     PILL showing the current language; a tap opens the six under it. The two-letter CODES carry the meaning, flags
+     decorate; the current row is bold with a check mark. Works in black and white. Native <details>: no script to open. */
+  .nrLang { position: relative; display: inline-flex; align-items: center; font-size: 0.66rem; letter-spacing: 0.06em; color: var(--foam, #fff); }
+  .nrLang .nrDd { position: relative; }
+  .nrLang .nrDd > summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; padding: 1px 7px;
+    border: 1px solid var(--nrLangEdge, var(--signal, #f7931a)); border-radius: 3px; cursor: pointer; font-weight: 700; line-height: 1.4; user-select: none; }
+  .nrLang .nrDd > summary::-webkit-details-marker { display: none; }
+  .nrDd > summary { color: var(--foam-dim, var(--ink-dim, var(--mist, #9aa))); }
+  .nrDd > summary:hover, .nrDd[open] > summary { color: var(--foam, var(--ink, var(--paper, #fff))); }
+  .nrLang .nrDd > summary:focus-visible { outline: 3px solid var(--signal, #f5a623); outline-offset: 2px; }
+  .nrLang .nrCaret { display: inline-block; font-size: 0.8em; transition: transform .15s; }
+  .nrLang .nrDd[open] > summary .nrCaret { transform: rotate(180deg); }
+  .nrLang .nrDdMenu { position: absolute; right: 0; top: calc(100% + 4px); min-width: 12em; max-width: calc(100vw - 16px);
+    display: grid; gap: 2px; padding: 4px; background: #0f141b; color: var(--foam, #fff); border: 1px solid currentColor;
+    border-radius: 8px; z-index: 50; box-shadow: 0 6px 18px rgba(0,0,0,.45); text-align: left; }
+  .nrLang .nrDdMenu a, .nrLang .nrDdMenu .cur { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px;
+    white-space: nowrap; text-decoration: none; color: inherit; border: 2px solid transparent; min-height: 32px; box-sizing: border-box;
+    text-transform: none; font-weight: 400; }
+  .nrLang .nrDdMenu a:hover, .nrLang .nrDdMenu a:focus-visible { border-color: currentColor; outline: none; }
+  .nrLang .nrDdMenu b { font-weight: 700; }
+  .nrLang .nrDdMenu .cur { font-weight: 700; }
+  .nrLang .nrDdMenu .nm { font-weight: 400; letter-spacing: 0; }
+  .nrLang .nrDdMenu .ck { margin-left: auto; font-weight: 700; }
+  /* closed = hidden, said outright: an author display rule on the menu must never beat the browser's own hiding */
+  .nrLang .nrDd:not([open]) > .nrDdMenu { display: none; }
+  .nrLang svg { border-radius: 2px; flex: none; }
+  .nrEnCounts { font-size: 0.62rem; font-style: italic; opacity: 0.8; }
+  /* In the radio's main menu the pill sits right after "Log in", at the menu's own small size. */
+  .mainmenu .nrLang { display: inline-flex; margin-left: 6px; }
+  /* nr_menuend (2026-09-15, SF: "LOG IN & language pill don't stick to the right of the menu bar anymore"): Log in
+     and the language pill are ONE group at the right end of its line, also when the menu wraps. */
+  .nrMenuEnd { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nrMenuEnd .nrLang { margin-left: 2px; }
+  .mainmenu .nrLang .nrDd > summary { padding: 1px 7px; font-size: 0.62rem; letter-spacing: 0.04em; }
+  /* The jukebox-mode copy (the phone page behind the arcade QR) sits in the narrow #jukeBanner: the same small pill. */
+  #jukeBanner .nrLang .nrDd > summary { padding: 1px 6px; font-size: 0.62rem; letter-spacing: 0.04em; gap: 4px; }
+  /* that pill stands at the LEFT of the banner, so its list opens to the right, inside a 375 px screen */
+  #jukeBanner .nrLang .nrDdMenu { right: auto; left: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="sitehead">
+    <div class="header-left">
+      <a href="/"><img class="hd-avatar" src="/assets/avatar.webp" alt="Noderunners Radio"></a>
+      <div class="live-dot" id="liveBadge"><span class="dot"></span><span id="liveText" data-i18n-soft="playBadgeOffline">offline</span></div>
+    </div>
+    <div class="brand">
+      <a href="/"><img class="logo" src="/assets/logo.svg" alt="Noderunners FM"></a>
+    </div>
+    <nav class="socials" aria-label="Social links" data-i18n-attr="aria-label:topSocialLinks">
+      <a href="https://t.me/noderunnersradio" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.6l-3.32 15.66c-.25 1.1-.9 1.38-1.83.86l-5.05-3.72-2.44 2.35c-.27.27-.5.5-1.02.5l.36-5.14 9.36-8.46c.4-.36-.09-.56-.63-.2L5.16 13.4.18 11.84c-1.08-.34-1.1-1.08.23-1.6L20.54 3.03c.9-.34 1.69.2 1.4 1.57z"/></svg></a>
+      <a href="https://github.com/LightningJukeboxBot/LightningJukeboxBot" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58l-.01-2.05c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg></a>
+      <a href="https://x.com/NoderunnersFM" target="_blank" rel="noopener" aria-label="X" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.46l8.6-9.83L0 1.15h7.6l5.24 6.93 6.06-6.93zm-1.29 19.5h2.04L6.48 3.24H4.29L17.61 20.65z"/></svg></a>
+    </nav>
+  </header>
+  <nav aria-label="Site menu" style="display:flex;gap:4px;padding:6px 0;border-bottom:1px solid var(--line);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;" data-i18n-attr="aria-label:topSiteMenu">
+    <a href="/" style="color:var(--foam-dim);text-decoration:none;padding:2px 12px;" data-i18n="topMenuHome">Home</a>
+    <a href="/progress" style="color:var(--foam-dim);text-decoration:none;padding:2px 12px;" data-i18n="topMenuProgress">Progress</a>
+    <a href="/dj-handbook" style="color:var(--foam-dim);text-decoration:none;padding:2px 12px;" data-i18n="topMenuDjGuide">Guest DJ Guide</a>
+    <a href="/manifesto" style="color:var(--foam-dim);text-decoration:none;padding:2px 12px;" data-i18n="topMenuManifesto">Manifesto</a>
+    <a href="/roadmap" style="color:var(--foam-dim);text-decoration:none;padding:2px 12px;" data-i18n="topMenuRoadmap">Roadmap</a>
+    <span class="nrMenuEnd"><a href="/login" style="color:var(--foam-dim);text-decoration:none;padding:2px 12px;" data-i18n="topMenuLogin">Log in</a><span class="nrLang" role="group" aria-label="Language"></span></span>
+  </nav>
+
+  <header>
+    <div class="eyebrow" data-i18n="obsDiv1">Noderunners Radio · Crew Handbook</div>
+    <h1 data-i18n="obsH11">OBS Operator Guide</h1>
+    <div class="sub" data-i18n="obsDiv2">For whoever runs the streaming machine. You already have the stream URL and key — those don't change. Only the scene does.</div>
+  </header>
+
+  <h2 data-i18n="obsH21">What changed, in one breath</h2>
+  <p data-i18n-html="obsP1">All on-screen graphics — tonight's DJ lineup, the donation QR, the live "+sats" popups — now come <b>from the station</b>, through one browser source. Your scene should be <b>nothing but the camera</b>. No more baked-in banners, no more pasted-in QR images, no chat panel.</p>
+  <div class="warn" data-i18n-html="obsDiv3"><b>The old Wallet of Satoshi QR must go.</b> Sats scanned from it land in the old wallet and <b>skip tonight's DJ pot</b> — the DJs would literally not get paid their share of those. Delete that image source.</div>
+
+  <h2 data-i18n="obsH22">Rebuild the scene (2 minutes)</h2>
+  <ol>
+    <li data-i18n-html="obsLi1"><b>Remove</b> from your scene: the old top banner, the Wallet of Satoshi QR image, the Telegram chat capture — every graphic that isn't the camera.</li>
+    <li data-i18n-html="obsLi2"><b>Camera full-frame:</b> your cam/set video source stretched to fill the whole canvas.</li>
+    <li data-i18n-html="obsLi3"><b>Add the overlay:</b> Sources → <b>+</b> → <b>Browser</b> → name it <span class="mono">NR overlay</span> → set:
+      <div class="check">
+        URL: <span class="mono">https://noderunnersradio.com/overlay</span><br>
+        Width: <span class="mono">1920</span> &nbsp; Height: <span class="mono">1080</span><br>
+        <span class="muted">Leave the rest on defaults. OK.</span>
+      </div>
+    </li>
+    <li data-i18n-html="obsLi4"><b>Order matters:</b> in the Sources list, drag <b>NR overlay above the camera</b> (top of the list = front of the picture).</li>
+    <li data-i18n-html="obsLi5">If the overlay doesn't fill the canvas exactly: right-click it → Transform → <b>Fit to screen</b>.</li>
+  </ol>
+
+  <h2 data-i18n="obsH23">What you should see</h2>
+  <table>
+    <tr><td data-i18n="obsTd1">Immediately</td><td data-i18n-html="obsTd2">The ⚡ <b>tip QR appears top-right</b> over your camera. Background stays your video — the overlay is transparent.</td></tr>
+    <tr><td data-i18n="obsTd3">When the captain opens the session</td><td data-i18n-html="obsTd4">The <b>DJ lineup row appears bottom-center</b> (name discs). If it's not there yet, the session just isn't opened — not your problem.</td></tr>
+    <tr><td data-i18n="obsTd5">When someone donates</td><td data-i18n-html="obsTd6">A big <b>"+N sats ⚡"</b> popup with the donor's name/message, the DJ discs pulse, a current runs along the bottom. All automatic.</td></tr>
+  </table>
+
+  <h2 data-i18n="obsH24">During the show</h2>
+  <ul>
+    <li data-i18n-html="obsLi6"><b>Nothing to operate.</b> Popups, lineup, QR — all remote-controlled by the station.</li>
+    <li data-i18n-html="obsLi7">If the overlay ever looks stuck or the station says "we pushed an update": right-click the <b>NR overlay</b> source → <b>Refresh cache of current page</b>. Two seconds, no stream interruption.</li>
+    <li data-i18n="obsLi8">Stream out exactly as you always have — same URL, same key, same encoder settings that worked before.</li>
+  </ul>
+
+  <h2 data-i18n="obsH25">Hosts: your own controls</h2>
+  <p data-i18n="obsP2">Two things no longer need the captain:</p>
+  <ol>
+    <li data-i18n-html="obsLi9"><b>Highlight who is playing.</b> Log into your DJ portal. Host accounts
+        see an <b>ON DECK</b> card. Tap the DJ who takes the decks; tap again to
+        unmark. The overlay follows within ~10 seconds. This changes the picture
+        only &mdash; it never moves sats.</li>
+    <li data-i18n-html="obsLi10"><b>Move the overlay around.</b> Your venue has its own overlay URL,
+        printed on your portal's <b>YOUR OVERLAY</b> card. Open the drag editor
+        link there, drag the pieces, press SAVE. Your host login is enough.
+        OBS picks up new positions within ~10 seconds &mdash; no source refresh
+        needed for positions (styling changes still need one).</li>
+  </ol>
+  <p data-i18n="obsP3">If SAVE answers &ldquo;host login required&rdquo;, flip HOST MODE on in your
+     portal first, or simply log in again &mdash; portal logins last 90 days.</p>
+
+  <h2 data-i18n="obsH26">If something's off</h2>
+  <ul>
+    <li data-i18n-html="obsLi11"><b>No overlay visible at all</b> → check the URL is exactly <span class="mono">https://noderunnersradio.com/overlay</span> (https, no ?demo), size 1920×1080, source at the top of the list.</li>
+    <li data-i18n-html="obsLi12"><b>White or dark box instead of transparency</b> → you may have typed <span class="mono">?demo=1</span> — that's the preview mode with a fake background. Remove it for the live scene.</li>
+    <li data-i18n-html="obsLi13"><b>No lineup row</b> → the captain hasn't opened the session yet, or just did (it refreshes within ~15 s).</li>
+    <li data-i18n="obsLi14">Anything else → ping the Telegram group; the captain has eyes on the machine.</li>
+  </ul>
+
+  <p class="muted" style="margin-top:34px;" data-i18n="obsP4">Signed, from international waters — Noderunners Radio.</p>
+
+<div class="nrEnCounts" data-i18n="englishCounts" hidden style="margin:18px 0 0;font-size:0.72rem;">Translated from English. If anything differs, the English text counts.</div>
+</div>
+<script>
+  // nr_i18n (2026-09-11, SF: six languages on all his sites). ONE page, one dictionary per language,
+  // English fallback. ?lang=xx for this view; a TAP on the switch also remembers it (localStorage nrLang).
+  // Never a reload: an open Lightning invoice must survive a language change. An English page is never
+  // rewritten -- the markup already says it. See plan/radio_i18n_runtime.py.
+  (function(){
+    var LANGS = ["en", "nl", "de", "fr", "es", "pt"];
+    var NAMES = {"en": "English", "nl": "Nederlands", "de": "Deutsch", "fr": "Français", "es": "Español", "pt": "Português"};
+    var LOCALES = {"en": "en-US", "nl": "nl-NL", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "pt": "pt-PT"};
+    var FLAGS = {"en": "<svg viewBox=\"0 0 60 30\" preserveAspectRatio=\"xMidYMid slice\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><clipPath id=\"nrGbS\"><path d=\"M0,0 v30 h60 v-30 z\"/><\/clipPath><clipPath id=\"nrGbT\"><path d=\"M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z\"/><\/clipPath><g clip-path=\"url(#nrGbS)\"><path d=\"M0,0 v30 h60 v-30 z\" fill=\"#012169\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" stroke=\"#FFF\" stroke-width=\"6\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" clip-path=\"url(#nrGbT)\" stroke=\"#C8102E\" stroke-width=\"4\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#FFF\" stroke-width=\"10\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#C8102E\" stroke-width=\"6\"/><\/g><\/svg>", "nl": "<svg viewBox=\"0 0 9 6\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AE1C28\" d=\"M0 0h9v2H0z\"/><path fill=\"#FFF\" d=\"M0 2h9v2H0z\"/><path fill=\"#21468B\" d=\"M0 4h9v2H0z\"/><\/svg>", "de": "<svg viewBox=\"0 0 5 3\" preserveAspectRatio=\"none\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#000\" d=\"M0 0h5v1H0z\"/><path fill=\"#DD0000\" d=\"M0 1h5v1H0z\"/><path fill=\"#FFCE00\" d=\"M0 2h5v1H0z\"/><\/svg>", "fr": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#002395\" d=\"M0 0h1v2H0z\"/><path fill=\"#FFF\" d=\"M1 0h1v2H1z\"/><path fill=\"#ED2939\" d=\"M2 0h1v2H2z\"/><\/svg>", "es": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AA151B\" d=\"M0 0h3v2H0z\"/><path fill=\"#F1BF00\" d=\"M0 .5h3v1H0z\"/><\/svg>", "pt": "<svg viewBox=\"0 0 30 20\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#006600\" d=\"M0 0h12v20H0z\"/><path fill=\"#FF0000\" d=\"M12 0h18v20H12z\"/><circle cx=\"12\" cy=\"10\" r=\"4.2\" fill=\"#FFCC00\"/><\/svg>"};
+    var I18N = {
+      "en": {"playBadgeOffline": "offline", "obsH23": "What you should see", "obsH24": "During the show", "obsTd5": "When someone donates", "obsTd6": "A big <b>\"+N sats ⚡\"<\/b> popup with the donor's name/message, the DJ discs pulse, a current runs along the bottom. All automatic.", "topMenuHome": "Home", "obsDiv3": "<b>The old Wallet of Satoshi QR must go.<\/b> Sats scanned from it land in the old wallet and <b>skip tonight's DJ pot<\/b> — the DJs would literally not get paid their share of those. Delete that image source.", "obsP3": "If SAVE answers “host login required”, flip HOST MODE on in your\n     portal first, or simply log in again — portal logins last 90 days.", "obsDiv2": "For whoever runs the streaming machine. You already have the stream URL and key — those don't change. Only the scene does.", "obsP2": "Two things no longer need the captain:", "obsH26": "If something's off", "obsLi10": "<b>Move the overlay around.<\/b> Your venue has its own overlay URL,\n        printed on your portal's <b>YOUR OVERLAY<\/b> card. Open the drag editor\n        link there, drag the pieces, press SAVE. Your host login is enough.\n        OBS picks up new positions within ~10 seconds &mdash; no source refresh\n        needed for positions (styling changes still need one).", "obsLi6": "<b>Nothing to operate.<\/b> Popups, lineup, QR — all remote-controlled by the station.", "obsLi3": "<b>Add the overlay:<\/b> Sources → <b>+<\/b> → <b>Browser<\/b> → name it <span class=\"mono\">NR overlay<\/span> → set:\n      <div class=\"check\">\n        URL: <span class=\"mono\">https://noderunnersradio.com/overlay<\/span><br>\n        Width: <span class=\"mono\">1920<\/span> &nbsp; Height: <span class=\"mono\">1080<\/span><br>\n        <span class=\"muted\">Leave the rest on defaults. OK.<\/span>\n      <\/div>\n    ", "obsLi9": "<b>Highlight who is playing.<\/b> Log into your DJ portal. Host accounts\n        see an <b>ON DECK<\/b> card. Tap the DJ who takes the decks; tap again to\n        unmark. The overlay follows within ~10 seconds. This changes the picture\n        only &mdash; it never moves sats.", "playBadgeLive": "live", "obsLi11": "<b>No overlay visible at all<\/b> → check the URL is exactly <span class=\"mono\">https://noderunnersradio.com/overlay<\/span> (https, no ?demo), size 1920×1080, source at the top of the list.", "topMenuDjGuide": "Guest DJ Guide", "obsLi1": "<b>Remove<\/b> from your scene: the old top banner, the Wallet of Satoshi QR image, the Telegram chat capture — every graphic that isn't the camera.", "obsLi12": "<b>White or dark box instead of transparency<\/b> → you may have typed <span class=\"mono\">?demo=1<\/span> — that's the preview mode with a fake background. Remove it for the live scene.", "topMenuManifesto": "Manifesto", "obsH25": "Hosts: your own controls", "obsLi8": "Stream out exactly as you always have — same URL, same key, same encoder settings that worked before.", "obsTd4": "The <b>DJ lineup row appears bottom-center<\/b> (name discs). If it's not there yet, the session just isn't opened — not your problem.", "topMenuLogin": "Log in", "obsTitle": "OBS Operator Guide · Noderunners Radio", "obsLi4": "<b>Order matters:<\/b> in the Sources list, drag <b>NR overlay above the camera<\/b> (top of the list = front of the picture).", "obsH22": "Rebuild the scene (2 minutes)", "obsLi14": "Anything else → ping the Telegram group; the captain has eyes on the machine.", "langLabel": "Language", "topMenuProgress": "Progress", "obsTd3": "When the captain opens the session", "englishCounts": "Translated from English. If anything differs, the English text counts.", "topCoords": "broadcasting from international waters", "obsTd2": "The ⚡ <b>tip QR appears top-right<\/b> over your camera. Background stays your video — the overlay is transparent.", "topSocialLinks": "Social links", "obsLi2": "<b>Camera full-frame:<\/b> your cam/set video source stretched to fill the whole canvas.", "obsLi13": "<b>No lineup row<\/b> → the captain hasn't opened the session yet, or just did (it refreshes within ~15 s).", "obsDiv1": "Noderunners Radio · Crew Handbook", "topMenuRoadmap": "Roadmap", "obsP1": "All on-screen graphics — tonight's DJ lineup, the donation QR, the live \"+sats\" popups — now come <b>from the station<\/b>, through one browser source. Your scene should be <b>nothing but the camera<\/b>. No more baked-in banners, no more pasted-in QR images, no chat panel.", "obsP4": "Signed, from international waters — Noderunners Radio.", "obsLi7": "If the overlay ever looks stuck or the station says \"we pushed an update\": right-click the <b>NR overlay<\/b> source → <b>Refresh cache of current page<\/b>. Two seconds, no stream interruption.", "obsH21": "What changed, in one breath", "topSiteMenu": "Site menu", "obsH11": "OBS Operator Guide", "obsTd1": "Immediately", "obsLi5": "If the overlay doesn't fill the canvas exactly: right-click it → Transform → <b>Fit to screen<\/b>."},
+      "nl": {"obsTitle": "OBS-operatorgids · Noderunners Radio", "obsDiv1": "Noderunners Radio · Crewhandboek", "obsH11": "OBS-operatorgids", "obsDiv2": "Voor wie de streamingmachine bedient. Je hebt de stream-URL en de key al — die veranderen niet. Alleen de scene verandert.", "obsH21": "Wat er veranderd is, in één adem", "obsP1": "Alle graphics in beeld — de DJ-line-up van vanavond, de donatie-QR, de live \"+sats\"-popups — komen nu <b>van het station<\/b>, via één browser source. Je scene moet <b>niets anders dan de camera<\/b> zijn. Geen ingebakken banners meer, geen geplakte QR-plaatjes meer, geen chatpaneel.", "obsDiv3": "<b>De oude Wallet of Satoshi-QR moet weg.<\/b> Sats die daarmee gescand worden, landen in de oude wallet en <b>slaan de DJ-pot van vanavond over<\/b> — de DJ's zouden hun deel daarvan letterlijk niet uitbetaald krijgen. Verwijder die image source.", "obsH22": "Bouw de scene opnieuw op (2 minuten)", "obsLi1": "<b>Haal weg<\/b> uit je scene: de oude banner bovenaan, het QR-plaatje van Wallet of Satoshi, de schermopname van de Telegram-chat — elke graphic die niet de camera is.", "obsLi2": "<b>Camera beeldvullend:<\/b> je cam/set-videobron uitgerekt tot hij het hele canvas vult.", "obsLi3": "<b>Voeg de overlay toe:<\/b> Sources → <b>+<\/b> → <b>Browser<\/b> → noem hem <span class=\"mono\">NR overlay<\/span> → stel in:\n      <div class=\"check\">\n        URL: <span class=\"mono\">https://noderunnersradio.com/overlay<\/span><br>\n        Width: <span class=\"mono\">1920<\/span> &nbsp; Height: <span class=\"mono\">1080<\/span><br>\n        <span class=\"muted\">Laat de rest op de standaardwaarden staan. OK.<\/span>\n      <\/div>\n    ", "obsLi4": "<b>Volgorde telt:<\/b> sleep in de Sources-lijst <b>NR overlay boven de camera<\/b> (bovenaan de lijst = vooraan in beeld).", "obsLi5": "Vult de overlay het canvas niet precies? Rechtsklik erop → Transform → <b>Fit to screen<\/b>.", "obsH23": "Wat je zou moeten zien", "obsTd1": "Meteen", "obsTd2": "De ⚡ <b>tip-QR verschijnt rechtsboven<\/b> over je camera. De achtergrond blijft je video — de overlay is transparant.", "obsTd3": "Als de kapitein de sessie opent", "obsTd4": "De <b>rij met de DJ-line-up verschijnt onderaan in het midden<\/b> (naamschijfjes). Staat hij er nog niet? Dan is de sessie gewoon nog niet geopend — niet jouw probleem.", "obsTd5": "Als iemand doneert", "obsTd6": "Een grote <b>\"+N sats ⚡\"<\/b>-popup met de naam/het bericht van de donateur, de DJ-schijfjes pulseren, er loopt een stroom langs de onderkant. Allemaal automatisch.", "obsH24": "Tijdens de show", "obsLi6": "<b>Niks te bedienen.<\/b> Popups, line-up, QR — allemaal op afstand bestuurd door het station.", "obsLi7": "Ziet de overlay er ooit vastgelopen uit, of zegt het station \"we hebben een update gepusht\": rechtsklik op de source <b>NR overlay<\/b> → <b>Refresh cache of current page<\/b>. Twee seconden, de stream loopt gewoon door.", "obsLi8": "Stream precies zoals je altijd deed — zelfde URL, zelfde key, dezelfde encoderinstellingen die eerder werkten.", "obsH25": "Hosts: je eigen knoppen", "obsP2": "Voor twee dingen heb je de kapitein niet meer nodig:", "obsLi9": "<b>Laat zien wie er draait.<\/b> Log in op je DJ-portaal. Hostaccounts\n        zien een <b>ON DECK<\/b>-kaart. Tik op de DJ die de decks overneemt; tik nog eens om\n        de markering weg te halen. De overlay volgt binnen ~10 seconden. Dit verandert alleen\n        het beeld &mdash; het verplaatst nooit sats.", "obsLi10": "<b>Schuif de overlay rond.<\/b> Jouw locatie heeft een eigen overlay-URL,\n        die staat op de kaart <b>YOUR OVERLAY<\/b> in je portaal. Open daar de link naar de sleepeditor,\n        sleep de onderdelen, druk op SAVE. Je hostlogin is genoeg.\n        OBS pakt nieuwe posities binnen ~10 seconden op &mdash; voor posities hoef je de source niet\n        te verversen (voor stijlwijzigingen nog wel).", "obsP3": "Antwoordt SAVE met “host login required”, zet dan eerst HOST MODE aan in je\n     portaal, of log gewoon opnieuw in — portaallogins blijven 90 dagen geldig.", "obsH26": "Als er iets niet klopt", "obsLi11": "<b>Helemaal geen overlay te zien<\/b> → controleer of de URL precies <span class=\"mono\">https://noderunnersradio.com/overlay<\/span> is (https, geen ?demo), formaat 1920×1080, source bovenaan de lijst.", "obsLi12": "<b>Wit of donker vlak in plaats van transparantie<\/b> → misschien heb je <span class=\"mono\">?demo=1<\/span> getypt — dat is de previewmodus met een nep-achtergrond. Haal het weg voor de live scene.", "obsLi13": "<b>Geen line-up-rij<\/b> → de kapitein heeft de sessie nog niet geopend, of net wel (hij ververst binnen ~15 s).", "obsLi14": "Iets anders → ping de Telegram-groep; de kapitein houdt de machine in de gaten.", "obsP4": "Getekend, vanuit internationale wateren — Noderunners Radio.", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Inloggen", "topSiteMenu": "Sitemenu", "langLabel": "Taal", "topMenuProgress": "Voortgang", "topMenuDjGuide": "Gast-DJ-gids", "englishCounts": "Vertaald uit het Engels. Wijkt er iets af, dan geldt de Engelse tekst.", "topCoords": "zendt uit vanuit internationale wateren", "playBadgeLive": "live", "topSocialLinks": "Sociale media", "topMenuHome": "Home"},
+      "de": {"obsTitle": "OBS-Leitfaden für Operatoren · Noderunners Radio", "obsDiv1": "Noderunners Radio · Crew-Handbuch", "obsH11": "OBS-Leitfaden für Operatoren", "obsDiv2": "Für alle, die den Streaming-Rechner bedienen. Stream-URL und Key hast du schon — die ändern sich nicht. Nur die Szene ändert sich.", "obsH21": "Was sich geändert hat, in einem Atemzug", "obsP1": "Alle Grafiken auf dem Bildschirm — das DJ-Lineup des Abends, der Spenden-QR, die Live-Popups „+sats“ — kommen jetzt <b>vom Sender<\/b>, über eine einzige Browser-Source. Deine Szene sollte <b>nichts als die Kamera<\/b> sein. Keine eingebrannten Banner mehr, keine eingefügten QR-Bilder mehr, kein Chat-Fenster.", "obsDiv3": "<b>Der alte Wallet-of-Satoshi-QR muss weg.<\/b> Sats, die darüber gescannt werden, landen in der alten Wallet und <b>umgehen den DJ-Topf des Abends<\/b> — die DJs würden ihren Anteil daran buchstäblich nicht bekommen. Lösch diese Bildquelle.", "obsH22": "Die Szene neu bauen (2 Minuten)", "obsLi1": "<b>Entferne<\/b> aus deiner Szene: das alte Banner oben, das QR-Bild von Wallet of Satoshi, die Aufnahme des Telegram-Chats — jede Grafik, die nicht die Kamera ist.", "obsLi2": "<b>Kamera im Vollbild:<\/b> deine Kamera-/Set-Videoquelle, so gestreckt, dass sie die ganze Leinwand füllt.", "obsLi3": "<b>Overlay hinzufügen:<\/b> Sources → <b>+<\/b> → <b>Browser<\/b> → nenn sie <span class=\"mono\">NR overlay<\/span> → trag ein:\n      <div class=\"check\">\n        URL: <span class=\"mono\">https://noderunnersradio.com/overlay<\/span><br>\n        Width: <span class=\"mono\">1920<\/span> &nbsp; Height: <span class=\"mono\">1080<\/span><br>\n        <span class=\"muted\">Lass den Rest auf den Standardwerten. OK.<\/span>\n      <\/div>\n    ", "obsLi4": "<b>Die Reihenfolge zählt:<\/b> Zieh in der Sources-Liste <b>NR overlay über die Kamera<\/b> (oben in der Liste = vorne im Bild).", "obsLi5": "Wenn das Overlay die Leinwand nicht genau ausfüllt: Rechtsklick darauf → Transform → <b>Fit to screen<\/b>.", "obsH23": "Was du sehen solltest", "obsTd1": "Sofort", "obsTd2": "Der ⚡ <b>Trinkgeld-QR erscheint oben rechts<\/b> über deiner Kamera. Der Hintergrund bleibt dein Video — das Overlay ist transparent.", "obsTd3": "Wenn der Kapitän die Session öffnet", "obsTd4": "Die <b>DJ-Lineup-Reihe erscheint unten in der Mitte<\/b> (Namensscheiben). Wenn sie noch nicht da ist, ist die Session einfach noch nicht geöffnet — nicht dein Problem.", "obsTd5": "Wenn jemand spendet", "obsTd6": "Ein großes Popup <b>„+N sats ⚡“<\/b> mit dem Namen/der Nachricht des Spenders, die DJ-Scheiben pulsieren, eine Strömung läuft unten entlang. Alles automatisch.", "obsH24": "Während der Show", "obsLi6": "<b>Nichts zu bedienen.<\/b> Popups, Lineup, QR — alles wird vom Sender ferngesteuert.", "obsLi7": "Wenn das Overlay mal hängt oder der Sender sagt „wir haben ein Update gepusht“: Rechtsklick auf die Source <b>NR overlay<\/b> → <b>Refresh cache of current page<\/b>. Zwei Sekunden, keine Unterbrechung des Streams.", "obsLi8": "Streame genau so raus wie immer — gleiche URL, gleicher Key, gleiche Encoder-Einstellungen, die vorher funktioniert haben.", "obsH25": "Hosts: deine eigenen Regler", "obsP2": "Zwei Dinge brauchen den Kapitän nicht mehr:", "obsLi9": "<b>Zeig, wer gerade spielt.<\/b> Log dich in dein DJ-Portal ein. Host-Accounts sehen eine Karte <b>ON DECK<\/b>. Tipp auf den DJ, der an die Decks geht; tipp noch mal, um die Markierung aufzuheben. Das Overlay folgt innerhalb von ~10 Sekunden. Das ändert nur das Bild &mdash; es bewegt nie sats.", "obsLi10": "<b>Verschieb das Overlay.<\/b> Deine Location hat ihre eigene Overlay-URL, zu finden auf der Karte <b>YOUR OVERLAY<\/b> in deinem Portal. Öffne dort den Link zum Drag-Editor, zieh die Teile zurecht, drück SAVE. Dein Host-Login reicht. OBS übernimmt neue Positionen innerhalb von ~10 Sekunden &mdash; für Positionen ist kein Refresh der Source nötig (Änderungen am Styling brauchen weiterhin einen).", "obsP3": "Wenn SAVE mit „host login required“ antwortet, schalte zuerst HOST MODE in deinem Portal ein oder log dich einfach neu ein — Portal-Logins halten 90 Tage.", "obsH26": "Wenn etwas nicht stimmt", "obsLi11": "<b>Überhaupt kein Overlay zu sehen<\/b> → prüf, ob die URL genau <span class=\"mono\">https://noderunnersradio.com/overlay<\/span> lautet (https, kein ?demo), Größe 1920×1080, Source ganz oben in der Liste.", "obsLi12": "<b>Weißer oder dunkler Kasten statt Transparenz<\/b> → vielleicht hast du <span class=\"mono\">?demo=1<\/span> eingetippt — das ist der Vorschaumodus mit einem Fake-Hintergrund. Entfern es für die Live-Szene.", "obsLi13": "<b>Keine Lineup-Reihe<\/b> → der Kapitän hat die Session noch nicht geöffnet oder gerade erst (sie aktualisiert sich innerhalb von ~15 s).", "obsLi14": "Alles andere → ping die Telegram-Gruppe; der Kapitän hat die Maschine im Blick.", "obsP4": "Gezeichnet, aus internationalen Gewässern — Noderunners Radio.", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Anmelden", "topSiteMenu": "Hauptmenü", "langLabel": "Sprache", "topMenuProgress": "Fortschritt", "topMenuDjGuide": "Gast-DJ-Guide", "englishCounts": "Aus dem Englischen übersetzt. Bei Abweichungen gilt der englische Text.", "topCoords": "sendet aus internationalen Gewässern", "playBadgeLive": "live", "topSocialLinks": "Social-Media-Links", "topMenuHome": "Start"},
+      "fr": {"obsTitle": "Guide de l’opérateur OBS · Noderunners Radio", "obsDiv1": "Noderunners Radio · Manuel de l’équipage", "obsH11": "Guide de l’opérateur OBS", "obsDiv2": "Pour la personne qui fait tourner la machine de streaming. Vous avez déjà l’URL et la clé de stream — elles ne changent pas. Seule la scène change.", "obsH21": "Ce qui a changé, en bref", "obsP1": "Tous les visuels à l’écran — l’affiche des DJ du soir, le QR des dons, les popups « +sats » en direct — viennent maintenant <b>de la station<\/b>, via une seule source Browser. Votre scène ne doit contenir <b>rien d’autre que la caméra<\/b>. Fini les bannières incrustées, fini les images QR collées, plus de panneau de chat.", "obsDiv3": "<b>L’ancien QR Wallet of Satoshi doit disparaître.<\/b> Les sats envoyés en le scannant arrivent dans l’ancien wallet et <b>échappent à la cagnotte des DJ du soir<\/b> — les DJ ne toucheraient littéralement pas leur part de ces sats. Supprimez cette source Image.", "obsH22": "Reconstruire la scène (2 minutes)", "obsLi1": "<b>Retirez<\/b> de votre scène : l’ancienne bannière du haut, l’image QR Wallet of Satoshi, la capture du chat Telegram — tout visuel qui n’est pas la caméra.", "obsLi2": "<b>Caméra plein cadre :<\/b> votre source vidéo caméra/set, étirée pour remplir tout le canevas.", "obsLi3": "<b>Ajoutez l’overlay :<\/b> Sources → <b>+<\/b> → <b>Browser<\/b> → nommez-la <span class=\"mono\">NR overlay<\/span> → réglez :\n      <div class=\"check\">\n        URL : <span class=\"mono\">https://noderunnersradio.com/overlay<\/span><br>\n        Width : <span class=\"mono\">1920<\/span> &nbsp; Height : <span class=\"mono\">1080<\/span><br>\n        <span class=\"muted\">Laissez le reste par défaut. OK.<\/span>\n      <\/div>\n    ", "obsLi4": "<b>L’ordre compte :<\/b> dans la liste Sources, faites glisser <b>NR overlay au-dessus de la caméra<\/b> (haut de la liste = premier plan de l’image).", "obsLi5": "Si l’overlay ne remplit pas exactement le canevas : clic droit dessus → Transform → <b>Fit to screen<\/b>.", "obsH23": "Ce que vous devriez voir", "obsTd1": "Immédiatement", "obsTd2": "Le ⚡ <b>QR des dons apparaît en haut à droite<\/b>, par-dessus votre caméra. L’arrière-plan reste votre vidéo — l’overlay est transparent.", "obsTd3": "Quand le capitaine ouvre la session", "obsTd4": "La <b>rangée des DJ à l’affiche apparaît en bas au centre<\/b> (disques avec les noms). Si elle n’est pas encore là, c’est simplement que la session n’est pas ouverte — pas votre problème.", "obsTd5": "Quand quelqu’un fait un don", "obsTd6": "Une grande popup <b>« +N sats ⚡ »<\/b> avec le nom/message du donateur, les disques des DJ pulsent, un courant parcourt le bas de l’image. Tout est automatique.", "obsH24": "Pendant l’émission", "obsLi6": "<b>Rien à manipuler.<\/b> Popups, affiche, QR — tout est piloté à distance par la station.", "obsLi7": "Si l’overlay semble un jour figé, ou si la station dit « nous avons poussé une mise à jour » : clic droit sur la source <b>NR overlay<\/b> → <b>Refresh cache of current page<\/b>. Deux secondes, sans interruption du stream.", "obsLi8": "Diffusez exactement comme d’habitude — même URL, même clé, mêmes réglages d’encodeur qui fonctionnaient déjà.", "obsH25": "Hôtes : vos propres commandes", "obsP2": "Deux choses n’ont plus besoin du capitaine :", "obsLi9": "<b>Mettez en avant qui joue.<\/b> Connectez-vous à votre portail DJ. Les comptes hôte\n        voient une carte <b>ON DECK<\/b>. Touchez le DJ qui prend les platines ; touchez-le à nouveau pour\n        retirer la marque. L’overlay suit en ~10 secondes. Cela ne change que l’image\n        &mdash; cela ne déplace jamais de sats.", "obsLi10": "<b>Déplacez l’overlay.<\/b> Votre lieu a sa propre URL d’overlay,\n        affichée sur la carte <b>YOUR OVERLAY<\/b> de votre portail. Ouvrez le lien de l’éditeur\n        par glisser-déposer qui s’y trouve, faites glisser les éléments, appuyez sur SAVE. Votre connexion d’hôte suffit.\n        OBS reprend les nouvelles positions en ~10 secondes &mdash; pas besoin de rafraîchir la source\n        pour les positions (les changements de style en demandent toujours un).", "obsP3": "Si SAVE répond « host login required », activez d’abord HOST MODE dans votre\n     portail, ou reconnectez-vous simplement — les connexions au portail durent 90 jours.", "obsH26": "Si quelque chose cloche", "obsLi11": "<b>Aucun overlay visible<\/b> → vérifiez que l’URL est exactement <span class=\"mono\">https://noderunnersradio.com/overlay<\/span> (https, sans ?demo), taille 1920×1080, source en haut de la liste.", "obsLi12": "<b>Boîte blanche ou sombre au lieu de la transparence<\/b> → vous avez peut-être tapé <span class=\"mono\">?demo=1<\/span> — c’est le mode aperçu, avec un faux arrière-plan. Retirez-le pour la scène en direct.", "obsLi13": "<b>Pas de rangée des DJ<\/b> → le capitaine n’a pas encore ouvert la session, ou vient de le faire (elle se rafraîchit en ~15 s).", "obsLi14": "Autre chose → prévenez le groupe Telegram ; le capitaine a l’œil sur la machine.", "obsP4": "Signé depuis les eaux internationales — Noderunners Radio.", "topMenuManifesto": "Manifeste", "playBadgeOffline": "hors ligne", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Connexion", "topSiteMenu": "Menu du site", "langLabel": "Langue", "topMenuProgress": "Avancement", "topMenuDjGuide": "Guide DJ invité", "englishCounts": "Traduit de l’anglais. En cas de différence, le texte anglais fait foi.", "topCoords": "on émet depuis les eaux internationales", "playBadgeLive": "direct", "topSocialLinks": "Réseaux sociaux", "topMenuHome": "Accueil"},
+      "es": {"obsTitle": "Guía del operador de OBS · Noderunners Radio", "obsDiv1": "Noderunners Radio · Manual de la tripulación", "obsH11": "Guía del operador de OBS", "obsDiv2": "Para quien lleve la máquina de streaming. Ya tienes la URL y la clave de stream — esas no cambian. Solo cambia la escena.", "obsH21": "Qué ha cambiado, de un tirón", "obsP1": "Todos los gráficos en pantalla — el cartel de DJs de esta noche, el QR de donaciones, los avisos de «+sats» en directo — ahora vienen <b>de la emisora<\/b>, a través de una sola fuente Browser. Tu escena debe ser <b>solo la cámara<\/b>. Se acabaron los banners incrustados, las imágenes QR pegadas y el panel de chat.", "obsDiv3": "<b>El QR antiguo de Wallet of Satoshi tiene que desaparecer.<\/b> Los sats escaneados desde él caen en la wallet antigua y <b>se saltan el bote de los DJs de esta noche<\/b> — los DJs literalmente no cobrarían su parte de esos sats. Borra esa fuente de imagen.", "obsH22": "Rehaz la escena (2 minutos)", "obsLi1": "<b>Quita<\/b> de tu escena: el banner superior antiguo, la imagen QR de Wallet of Satoshi, la captura del chat de Telegram — cualquier gráfico que no sea la cámara.", "obsLi2": "<b>Cámara a pantalla completa:<\/b> tu fuente de vídeo de cámara/set, estirada para llenar todo el lienzo.", "obsLi3": "<b>Añade el overlay:<\/b> Sources → <b>+<\/b> → <b>Browser<\/b> → llámalo <span class=\"mono\">NR overlay<\/span> → configura:\n      <div class=\"check\">\n        URL: <span class=\"mono\">https://noderunnersradio.com/overlay<\/span><br>\n        Width: <span class=\"mono\">1920<\/span> &nbsp; Height: <span class=\"mono\">1080<\/span><br>\n        <span class=\"muted\">Deja el resto por defecto. OK.<\/span>\n      <\/div>\n    ", "obsLi4": "<b>El orden importa:<\/b> en la lista de Sources, arrastra <b>NR overlay por encima de la cámara<\/b> (arriba en la lista = delante en la imagen).", "obsLi5": "Si el overlay no llena exactamente el lienzo: clic derecho sobre él → Transform → <b>Fit to screen<\/b>.", "obsH23": "Lo que deberías ver", "obsTd1": "Al instante", "obsTd2": "El ⚡ <b>QR de propinas aparece arriba a la derecha<\/b> sobre tu cámara. El fondo sigue siendo tu vídeo — el overlay es transparente.", "obsTd3": "Cuando el capitán abre la sesión", "obsTd4": "La <b>fila del cartel de DJs aparece abajo en el centro<\/b> (discos con los nombres). Si todavía no está, es que la sesión aún no se ha abierto — no es problema tuyo.", "obsTd5": "Cuando alguien dona", "obsTd6": "Un gran aviso <b>«+N sats ⚡»<\/b> con el nombre/mensaje de quien dona, los discos de los DJs laten y una corriente recorre la parte de abajo. Todo automático.", "obsH24": "Durante el programa", "obsLi6": "<b>No hay nada que manejar.<\/b> Avisos, cartel, QR — todo lo controla la emisora a distancia.", "obsLi7": "Si el overlay parece atascado o la emisora dice «hemos subido una actualización»: clic derecho en la fuente <b>NR overlay<\/b> → <b>Refresh cache of current page<\/b>. Dos segundos, sin cortar el stream.", "obsLi8": "Emite exactamente como siempre — la misma URL, la misma clave, los mismos ajustes del codificador que funcionaban antes.", "obsH25": "Anfitriones: tus propios controles", "obsP2": "Dos cosas que ya no necesitan al capitán:", "obsLi9": "<b>Destaca quién está pinchando.<\/b> Entra en tu portal de DJ. Las cuentas de anfitrión\n        ven una tarjeta <b>ON DECK<\/b>. Toca al DJ que se pone a los platos; vuelve a tocar para\n        desmarcarlo. El overlay lo refleja en ~10 segundos. Esto solo cambia la imagen\n        &mdash; nunca mueve sats.", "obsLi10": "<b>Mueve el overlay.<\/b> Tu local tiene su propia URL de overlay,\n        que aparece en la tarjeta <b>YOUR OVERLAY<\/b> de tu portal. Abre ahí el enlace del editor\n        de arrastre, arrastra las piezas y pulsa SAVE. Con tu acceso de anfitrión basta.\n        OBS recoge las nuevas posiciones en ~10 segundos &mdash; no hace falta refrescar la fuente\n        para las posiciones (los cambios de estilo sí lo necesitan).", "obsP3": "Si SAVE responde “host login required”, activa primero HOST MODE en tu\n     portal, o simplemente vuelve a entrar — los accesos al portal duran 90 días.", "obsH26": "Si algo falla", "obsLi11": "<b>No se ve ningún overlay<\/b> → comprueba que la URL es exactamente <span class=\"mono\">https://noderunnersradio.com/overlay<\/span> (https, sin ?demo), tamaño 1920×1080, fuente arriba del todo en la lista.", "obsLi12": "<b>Recuadro blanco u oscuro en vez de transparencia<\/b> → puede que hayas escrito <span class=\"mono\">?demo=1<\/span> — ese es el modo de vista previa con un fondo falso. Quítalo para la escena en directo.", "obsLi13": "<b>No aparece la fila del cartel<\/b> → el capitán aún no ha abierto la sesión, o acaba de hacerlo (se actualiza en ~15 s).", "obsLi14": "Cualquier otra cosa → avisa en el grupo de Telegram; el capitán tiene la máquina vigilada.", "obsP4": "Firmado desde aguas internacionales — Noderunners Radio.", "topMenuManifesto": "Manifiesto", "playBadgeOffline": "desconectado", "topMenuRoadmap": "Hoja de ruta", "topMenuLogin": "Entrar", "topSiteMenu": "Menú del sitio", "langLabel": "Idioma", "topMenuProgress": "Progreso", "topMenuDjGuide": "Guía para DJs", "englishCounts": "Traducido del inglés. Si algo difiere, prevalece el texto en inglés.", "topCoords": "emitiendo desde aguas internacionales", "playBadgeLive": "directo", "topSocialLinks": "Redes sociales", "topMenuHome": "Inicio"},
+      "pt": {"obsTitle": "Guia do operador de OBS · Noderunners Radio", "obsDiv1": "Noderunners Radio · Manual da tripulação", "obsH11": "Guia do operador de OBS", "obsDiv2": "Para quem opera a máquina de streaming. Já tem o URL e a chave da transmissão — esses não mudam. Só a cena muda.", "obsH21": "O que mudou, de um só fôlego", "obsP1": "Todos os gráficos no ecrã — o alinhamento de DJs desta noite, o QR de donativos, os popups «+sats» ao vivo — vêm agora <b>da rádio<\/b>, através de uma única fonte Browser. A sua cena deve ser <b>apenas a câmara<\/b>. Nada de faixas embutidas, nada de imagens QR coladas, nada de painel de chat.", "obsDiv3": "<b>O QR antigo da Wallet of Satoshi tem de sair.<\/b> Os sats pagos através dele caem na carteira antiga e <b>saltam o pote dos DJs desta noite<\/b> — os DJs ficariam literalmente sem a sua parte desses sats. Apague essa fonte de imagem.", "obsH22": "Refaça a cena (2 minutos)", "obsLi1": "<b>Retire<\/b> da sua cena: a faixa antiga do topo, a imagem QR da Wallet of Satoshi, a captura do chat do Telegram — todos os gráficos que não sejam a câmara.", "obsLi2": "<b>Câmara em ecrã inteiro:<\/b> a sua fonte de vídeo da câmara/set esticada até preencher todo o canvas.", "obsLi3": "<b>Adicione o overlay:<\/b> Sources → <b>+<\/b> → <b>Browser<\/b> → dê-lhe o nome <span class=\"mono\">NR overlay<\/span> → defina:\n      <div class=\"check\">\n        URL: <span class=\"mono\">https://noderunnersradio.com/overlay<\/span><br>\n        Width: <span class=\"mono\">1920<\/span> &nbsp; Height: <span class=\"mono\">1080<\/span><br>\n        <span class=\"muted\">Deixe o resto nos valores predefinidos. OK.<\/span>\n      <\/div>\n    ", "obsLi4": "<b>A ordem importa:<\/b> na lista Sources, arraste <b>NR overlay para acima da câmara<\/b> (topo da lista = frente da imagem).", "obsLi5": "Se o overlay não preencher exatamente o canvas: clique nele com o botão direito → Transform → <b>Fit to screen<\/b>.", "obsH23": "O que deve ver", "obsTd1": "De imediato", "obsTd2": "O ⚡ <b>QR de gorjetas aparece no canto superior direito<\/b>, sobre a sua câmara. O fundo continua a ser o seu vídeo — o overlay é transparente.", "obsTd3": "Quando o capitão abre a sessão", "obsTd4": "A <b>linha do alinhamento de DJs aparece em baixo, ao centro<\/b> (discos com os nomes). Se ainda não estiver lá, é só porque a sessão ainda não foi aberta — não é problema seu.", "obsTd5": "Quando alguém faz um donativo", "obsTd6": "Um grande popup <b>«+N sats ⚡»<\/b> com o nome/mensagem de quem doou, os discos dos DJs pulsam, uma corrente percorre a parte de baixo. Tudo automático.", "obsH24": "Durante o programa", "obsLi6": "<b>Nada para operar.<\/b> Popups, alinhamento, QR — tudo controlado à distância pela rádio.", "obsLi7": "Se o overlay alguma vez parecer encravado ou a rádio disser «enviámos uma atualização»: clique com o botão direito na fonte <b>NR overlay<\/b> → <b>Refresh cache of current page<\/b>. Dois segundos, sem interromper a transmissão.", "obsLi8": "Transmita exatamente como sempre fez — o mesmo URL, a mesma chave, as mesmas definições de codificador que funcionavam antes.", "obsH25": "Anfitriões: os seus próprios controlos", "obsP2": "Duas coisas que já não precisam do capitão:", "obsLi9": "<b>Destaque quem está a tocar.<\/b> Entre no seu portal de DJ. As contas de anfitrião\n        veem um cartão <b>ON DECK<\/b>. Toque no DJ que assume os pratos; toque outra vez para\n        desmarcar. O overlay acompanha em ~10 segundos. Isto muda apenas a imagem\n        &mdash; nunca mexe em sats.", "obsLi10": "<b>Mude o overlay de sítio.<\/b> O seu local tem o seu próprio URL de overlay,\n        indicado no cartão <b>YOUR OVERLAY<\/b> do seu portal. Abra aí o link do editor de arrastar,\n        arraste as peças e carregue em SAVE. O seu acesso de anfitrião chega.\n        O OBS apanha as novas posições em ~10 segundos &mdash; não é preciso atualizar a fonte\n        por causa das posições (as mudanças de estilo continuam a precisar).", "obsP3": "Se o SAVE responder “host login required”, ative primeiro o HOST MODE no seu\n     portal, ou simplesmente volte a entrar — os acessos ao portal duram 90 dias.", "obsH26": "Se algo não estiver bem", "obsLi11": "<b>Não se vê overlay nenhum<\/b> → confirme que o URL é exatamente <span class=\"mono\">https://noderunnersradio.com/overlay<\/span> (https, sem ?demo), tamanho 1920×1080, fonte no topo da lista.", "obsLi12": "<b>Caixa branca ou escura em vez de transparência<\/b> → pode ter escrito <span class=\"mono\">?demo=1<\/span> — esse é o modo de pré-visualização com um fundo falso. Retire-o na cena ao vivo.", "obsLi13": "<b>Sem linha do alinhamento<\/b> → o capitão ainda não abriu a sessão, ou acabou de a abrir (atualiza em ~15 s).", "obsLi14": "Qualquer outra coisa → avise no grupo de Telegram; o capitão está de olho na máquina.", "obsP4": "Assinado, a partir de águas internacionais — Noderunners Radio.", "topMenuManifesto": "Manifesto", "playBadgeOffline": "offline", "topMenuRoadmap": "Roteiro", "topMenuLogin": "Entrar", "topSiteMenu": "Menu do site", "langLabel": "Idioma", "topMenuProgress": "Progresso", "topMenuDjGuide": "Guia para DJs", "englishCounts": "Traduzido do inglês. Se algo for diferente, vale o texto em inglês.", "topCoords": "a emitir de águas internacionais", "playBadgeLive": "direto", "topSocialLinks": "Redes sociais", "topMenuHome": "Início"}
+    };
+    var LANG = 'en', hooks = [];
+    try {
+      var q = new URLSearchParams(location.search).get('lang');
+      var saved = null; try { saved = localStorage.getItem('nrLang'); } catch (e) {}
+      LANG = LANGS.indexOf(q) >= 0 ? q : (LANGS.indexOf(saved) >= 0 ? saved : 'en');
+    } catch (e) {}
+    function T(k) {
+      var d = I18N[LANG] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    // ONE pass with a function replacer: every slot is filled once, from the template only. A value (an
+    // artist, a title, a DJ name) is inserted literally -- a title that itself contains '{title}' or '$&'
+    // is never filled again or read as a pattern. (Slot-by-slot split/join got that wrong; scout B's
+    // equivalence tests caught it on 2026-09-11.)
+    function fill(s, map) {
+      return String(s).replace(/\{([A-Za-z0-9_]+)\}/g, function(m, k){
+        return Object.prototype.hasOwnProperty.call(map, k) ? String(map[k]) : m;
+      });
+    }
+    function each(sel, fn) { var n = document.querySelectorAll(sel); for (var i = 0; i < n.length; i++) fn(n[i]); }
+    function Tin(lang, k) {
+      var d = I18N[lang] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    var scratch = null;
+    function textOf(h) { scratch = scratch || document.createElement('div'); scratch.innerHTML = h; return scratch.textContent; }
+    function renderNav() {
+      var navs = document.querySelectorAll('.nrLang');
+      for (var n = 0; n < navs.length; n++) {
+        var nav = navs[n];
+        nav.setAttribute('aria-label', T('langLabel'));
+        // nr_langdd (2026-09-12, SF: "it takes up too much space"): ONE PILL with the current language; a tap opens
+        // the six rows under it (a native <details>: no script needed to open it). Every copy of the English flag
+        // gets its own clip-path ids: the nav number plus the row.
+        var flag = function(c, k){ return FLAGS[c].split('nrGb').join('nrGb' + n + k); };
+        var h = '<details class="nrDd"><summary lang="' + LANG + '" title="' + NAMES[LANG] + '">' + flag(LANG, 's') +
+                '<b>' + LANG.toUpperCase() + '</b><span class="nrCaret" aria-hidden="true">&#9662;</span></summary><div class="nrDdMenu">';
+        for (var i = 0; i < LANGS.length; i++) {
+          var c = LANGS[i], inner = flag(c, 'r' + i) + '<b>' + c.toUpperCase() + '</b><span class="nm">' + NAMES[c] + '</span>';
+          h += c === LANG
+            ? '<span class="cur" aria-current="true" lang="' + c + '" title="' + NAMES[c] + '">' + inner + '<span class="ck" aria-hidden="true">&#10003;</span></span>'
+            : '<a href="?lang=' + c + '" hreflang="' + c + '" lang="' + c + '" title="' + NAMES[c] + '" data-lang="' + c + '">' + inner + '</a>';
+        }
+        nav.innerHTML = h + '</div></details>';
+      }
+    }
+    // prev = the language the page shows right now. First load: 'en' (the markup). An English first load
+    // therefore rewrites nothing and runs no hooks. 'Soft' texts are defaults the page's own code
+    // overwrites with live state ('offline', 'connecting...'): they are replaced only while they still
+    // show the default, so a switch never clobbers live state -- that code writes its next update in the
+    // new language by itself. Hooks (nrI18nOnSwitch) redraw what code built, after every rewrite.
+    function applyLang(prev) {
+      document.documentElement.lang = LANG;
+      var rewrite = prev !== LANG;
+      if (rewrite) {
+        each('[data-i18n]', function(el){ el.textContent = T(el.getAttribute('data-i18n')); });
+        each('[data-i18n-html]', function(el){ el.innerHTML = T(el.getAttribute('data-i18n-html')); });
+        each('[data-i18n-attr]', function(el){
+          var parts = el.getAttribute('data-i18n-attr').split(';');
+          for (var i = 0; i < parts.length; i++) {
+            var j = parts[i].indexOf(':');
+            if (j > 0) el.setAttribute(parts[i].slice(0, j), T(parts[i].slice(j + 1)));
+          }
+        });
+        each('[data-i18n-soft]', function(el){
+          var k = el.getAttribute('data-i18n-soft');
+          if (el.textContent === Tin(prev, k)) el.textContent = T(k);
+        });
+        each('[data-i18n-soft-html]', function(el){
+          var k = el.getAttribute('data-i18n-soft-html');
+          if (el.textContent === textOf(Tin(prev, k))) el.innerHTML = T(k);
+        });
+      }
+      each('.nrEnCounts', function(el){ el.hidden = LANG === 'en'; });
+      renderNav();
+      if (rewrite) for (var h = 0; h < hooks.length; h++) { try { hooks[h](LANG, prev); } catch (e) {} }
+    }
+    function pickLang(c) {
+      if (LANGS.indexOf(c) < 0 || c === LANG) return;
+      var prev = LANG;
+      LANG = c;
+      try { localStorage.setItem('nrLang', c); } catch (e) {}
+      try {
+        var u = new URL(location.href);
+        if (c === 'en') u.searchParams.delete('lang'); else u.searchParams.set('lang', c);
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      } catch (e) {}
+      applyLang(prev);
+    }
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest ? e.target.closest('.nrLang a[data-lang]') : null;
+      if (!a) return;
+      e.preventDefault();
+      pickLang(a.getAttribute('data-lang'));
+    });
+    // nr_langdd: an open pill closes on a tap anywhere else, and on Escape (a pick re-renders it closed by itself)
+    document.addEventListener('click', function(e){
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) if (!open[i].contains(e.target)) open[i].removeAttribute('open');
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) open[i].removeAttribute('open');
+    });
+    window.T = T;
+    window.fill = fill;
+    window.nrLangNow = function(){ return LANG; };
+    window.nrLocale = function(){ return LOCALES[LANG]; };
+    window.nrI18nOnSwitch = function(fn){ if (typeof fn === 'function') hooks.push(fn); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ applyLang('en'); });
+    else applyLang('en');
+  })();
+</script>
+<script>
+(function(){
+  var b = document.getElementById('liveBadge'), t = document.getElementById('liveText');
+  if (!b) return;
+  function poll(){
+    fetch('/owncast-status', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      var on = !!(d && d.online === true);
+      b.classList.toggle('on', on);
+      t.textContent = on ? T('playBadgeLive') : T('playBadgeOffline');
+    }).catch(function(){});
+  }
+  poll(); setInterval(poll, 15000);
+})();
+</script>
+<script src="/assets/nr-edit.js" defer></script>
+</body>
+</html>

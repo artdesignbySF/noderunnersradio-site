@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="djTitle">The Dread Node — Guest DJ Handbook · Noderunners Radio</title>
+<link rel="icon" href="/assets/favicon.ico?v=2" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon-180.png?v=2">
+<style>
+  /* ---- Noderunners Radio — Guest DJ Handbook. Dark-committed console identity,
+         tokens lifted straight from the live site. ---- */
+  :root{
+    --ether:#0a1a1f; --ether-2:#0f262d; --ether-3:#0c2027;
+    --signal:#f7931a; --signal-2:#d06b29; --signal-dim:#b86d12;
+    --foam:#e6eff0; --foam-dim:#8aa4aa; --line:#1d3a42;
+    --radio-fill:#37525a;      /* station share — distinct by luminance, not just hue */
+    --good:#3f9d6b; --warn:#f7931a;
+    --maxw:760px;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--ether); color:var(--foam);
+    font-family: ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    line-height:1.6; -webkit-text-size-adjust:100%;
+    padding:0 20px 72px;
+  }
+  /* atmosphere — orange signal glow, echo of the site */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 18% -5%, rgba(247,147,26,0.10), transparent 55%),
+      radial-gradient(ellipse at 90% 120%, rgba(55,82,90,0.28), transparent 60%);
+  }
+  .wrap{ position:relative; z-index:1; max-width:var(--maxw); margin:0 auto; }
+
+  a{ color:var(--signal); text-underline-offset:3px; }
+  code, .mono{ font-family:inherit; color:var(--foam); background:rgba(55,82,90,.28);
+    border:1px solid var(--line); border-radius:4px; padding:1px 6px; font-size:.92em; white-space:nowrap; }
+  .mono.locked{ color:var(--foam-dim); opacity:.75; }
+  .lock{ display:inline-block; margin-left:6px; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--signal); border:1px solid var(--signal-dim); border-radius:3px; padding:1px 6px;
+    background:rgba(247,147,26,.06); white-space:nowrap; }
+  .locknote{ margin-bottom:14px; padding:11px 13px; border:1px dashed var(--signal-dim); border-radius:6px;
+    background:rgba(247,147,26,.06); font-size:.86rem; color:var(--foam); display:flex; gap:9px; align-items:flex-start; }
+  .locknote b{ color:var(--signal); }
+
+  .mainmenu{ display:flex; gap:4px; padding:10px 0 10px; border-bottom:1px solid var(--line); }
+  .mainmenu a{ color:var(--foam-dim); text-decoration:none; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; padding:2px 12px; border-radius:4px; transition:.15s; }
+  .mainmenu a:hover{ color:var(--foam); background:rgba(247,147,26,.08); }
+  .mainmenu a:focus-visible{ outline:2px solid var(--signal); outline-offset:2px; }
+  .mainmenu a.active{ color:var(--signal); }
+
+  .eyebrow{ font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--signal); }
+  .label{ font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--foam-dim); }
+
+  /* ---- masthead ---- */
+  header.mast{ padding:44px 0 20px; text-align:center; border-bottom:1px solid var(--line); }
+  .mast .eyebrow{ margin-bottom:14px; }
+  h1{ font-size:clamp(1.9rem,6vw,3rem); font-weight:700; line-height:1.05; letter-spacing:-.01em;
+    text-wrap:balance; }
+  .mast .lede{ color:var(--foam-dim); max-width:52ch; margin:16px auto 0; font-size:1rem; text-wrap:pretty; }
+  .coords{ margin-top:18px; font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:var(--foam-dim); }
+  .shipname{ color:var(--foam); font-weight:700; letter-spacing:.02em; white-space:nowrap; }
+
+  /* ---- preview / disabled banner ---- */
+  .drydock{ display:flex; gap:12px; align-items:flex-start;
+    margin:22px 0 0; padding:13px 15px; border-radius:6px;
+    background:rgba(247,147,26,.08); border:1px solid var(--signal-dim); color:var(--foam); }
+  .drydock .m{ font-size:.85rem; line-height:1.5; }
+  .drydock b{ color:var(--signal); font-weight:700; }
+  .drydock .ico{ flex:0 0 auto; font-size:1.1rem; line-height:1.4; }
+
+  /* ---- section scaffolding ---- */
+  section.block{ margin-top:34px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:14px; }
+  .sec-num{ font-size:.8rem; color:var(--signal); font-weight:700; letter-spacing:.05em;
+    border:1px solid var(--signal-dim); border-radius:4px; padding:2px 8px; flex:0 0 auto; }
+  h2{ font-size:1.28rem; font-weight:700; letter-spacing:.01em; text-wrap:balance; }
+  .intro-p{ color:var(--foam-dim); }
+
+  /* ---- panel ---- */
+  .panel{ background:var(--ether-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .panel + .panel{ margin-top:12px; }
+  .panel-label{ padding:10px 16px; border-bottom:1px solid var(--line);
+    font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--foam-dim);
+    display:flex; justify-content:space-between; gap:10px; }
+  .panel-body{ padding:16px 18px; }
+
+  /* ---- steps ---- */
+  ol.steps{ list-style:none; counter-reset:step; display:flex; flex-direction:column; gap:14px; }
+  ol.steps > li{ counter-increment:step; display:grid; grid-template-columns:30px 1fr; gap:13px; align-items:start; }
+  ol.steps > li::before{ content:counter(step); grid-row:1/3;
+    width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:.82rem; font-weight:700; color:var(--signal);
+    border:1.5px solid var(--signal); background:rgba(247,147,26,.06); }
+  ol.steps .s-t{ font-weight:700; }
+  ol.steps .s-d{ color:var(--foam-dim); font-size:.92rem; margin-top:2px; }
+
+  .note{ margin-top:14px; padding:11px 13px; border-left:3px solid var(--signal); border-radius:0 4px 4px 0;
+    background:rgba(55,82,90,.18); font-size:.88rem; color:var(--foam); }
+  .note b{ color:var(--signal); }
+  .note.guard{ border-left-color:var(--signal-2); }
+
+  /* ---- split ladder ---- */
+  .ladder{ display:flex; flex-direction:column; gap:12px; }
+  .tier{ background:var(--ether-2); border:1px solid var(--line); border-radius:6px; padding:14px 16px; }
+  .tier.now{ border-color:var(--signal-dim); box-shadow:0 0 0 1px rgba(247,147,26,.12) inset; }
+  .tier-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .tier-name{ display:flex; align-items:center; gap:10px; }
+  .pill{ font-size:.6rem; letter-spacing:.14em; text-transform:uppercase; font-weight:700;
+    padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:var(--foam-dim); }
+  .pill.on{ color:var(--ether); background:var(--signal); border-color:var(--signal); }
+  .tier-name .nm{ font-weight:700; }
+  .splitnums{ font-variant-numeric:tabular-nums; font-size:1.05rem; font-weight:700; letter-spacing:.02em; }
+  .splitnums .r{ color:var(--foam-dim); }
+  .splitnums .sep{ color:var(--line); margin:0 6px; }
+  .splitnums .y{ color:var(--signal); }
+  .bar{ display:flex; height:14px; margin-top:11px; border-radius:3px; overflow:hidden; border:1px solid var(--line); }
+  .bar .seg-r{ background:var(--radio-fill); }
+  .bar .seg-y{ background:var(--signal); }
+  .tier-cap{ margin-top:9px; font-size:.85rem; color:var(--foam-dim); }
+  .legend{ display:flex; gap:16px; margin-top:4px; font-size:.7rem; color:var(--foam-dim);
+    letter-spacing:.04em; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .sw{ width:11px; height:11px; border-radius:2px; border:1px solid var(--line); display:inline-block; }
+  .sw.y{ background:var(--signal); } .sw.r{ background:var(--radio-fill); }
+
+  .why{ margin-top:16px; padding:16px 18px; border:1px solid var(--line); border-left:3px solid var(--signal);
+    border-radius:0 6px 6px 0; background:var(--ether-3); }
+  .why .eyebrow{ display:block; margin-bottom:8px; }
+  .why p{ color:var(--foam); }
+
+  .finegrid{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+  .fine{ display:grid; grid-template-columns:22px 1fr; gap:10px; font-size:.9rem; color:var(--foam-dim); }
+  .fine .tick{ color:var(--signal); font-weight:700; }
+  .fine b{ color:var(--foam); font-weight:700; }
+
+  /* ---- FAQ ---- */
+  .faq{ display:flex; flex-direction:column; gap:2px; }
+  details{ border:1px solid var(--line); border-radius:6px; background:var(--ether-2); overflow:hidden; }
+  details + details{ margin-top:8px; }
+  summary{ cursor:pointer; list-style:none; padding:13px 16px; font-weight:700; font-size:.95rem;
+    display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  summary::-webkit-details-marker{ display:none; }
+  summary::after{ content:"+"; color:var(--signal); font-size:1.2rem; line-height:1; flex:0 0 auto; }
+  details[open] summary::after{ content:"\2212"; }
+  summary:focus-visible{ outline:2px solid var(--signal); outline-offset:-2px; }
+  details .a{ padding:0 16px 15px; color:var(--foam-dim); font-size:.92rem; }
+
+  /* ---- footer ---- */
+  footer{ margin-top:44px; padding-top:20px; border-top:1px solid var(--line);
+    display:flex; flex-direction:column; gap:10px; font-size:.72rem; color:var(--foam-dim); }
+  footer .sig b{ color:var(--signal); font-weight:400; }
+  footer .again{ color:var(--foam-dim); opacity:.85; }
+  footer .again b{ color:var(--signal); }
+
+  @media (max-width:520px){
+    ol.steps > li{ grid-template-columns:26px 1fr; }
+    ol.steps > li::before{ width:26px; height:26px; }
+  }
+
+  body::after{ content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:url("/assets/ship-bg.jpg") center 20% / cover no-repeat; opacity:0.14;
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent);
+            mask-image:linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.25) 55%, transparent); }
+
+  header.sitehead { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:22px 0 16px; border-bottom:1px solid var(--line); }
+  .header-left { grid-column:1; justify-self:start; display:flex; align-items:center; gap:12px; }
+  .hd-avatar { width:48px; height:48px; border-radius:50%; border:2px solid var(--signal-2, #d06b29); background:#000; }
+  .brand { display:flex; flex-direction:column; align-items:center; gap:6px; grid-column:2; }
+  .brand .logo { height:38px; width:auto; }
+  .brand .coords { font-size:0.62rem; color:var(--foam-dim); letter-spacing:0.14em; text-transform:uppercase; text-align:center; }
+  .socials { grid-column:3; justify-self:end; display:inline-flex; gap:6px; }
+  .socials a { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border:1px solid var(--line); border-radius:6px; color:var(--foam-dim); transition:.15s; }
+  .socials a:hover { color:var(--signal); border-color:var(--signal-dim, #b86d12); background:rgba(247,147,26,0.06); }
+  .socials a svg { width:16px; height:16px; }
+/* nr_header_mobile (2026-09-14): narrow screens -- avatar+badge left, socials right, wordmark on its own row under them.
+   Desktop untouched. Same fix as the homepage. */
+@media (max-width: 720px) {
+  header.sitehead { grid-template-columns:1fr auto; grid-template-areas:"left socials" "brand brand"; gap:10px; padding:16px 0 12px; }
+  header.sitehead .header-left { grid-area:left; }
+  header.sitehead .socials { grid-area:socials; }
+  header.sitehead .brand { grid-area:brand; justify-self:center; }
+  header.sitehead .brand .logo { height:auto; width:240px; max-width:calc(100vw - 40px); }
+}
+@media (max-width: 400px) {
+  header.sitehead .socials a { width:30px; height:30px; }
+  header.sitehead .socials a svg { width:14px; height:14px; }
+  header.sitehead .header-left { gap:8px; }
+  header.sitehead .live-dot { letter-spacing:.08em; }
+  header.sitehead .socials { gap:4px; }
+  .hd-avatar { width:44px; height:44px; }
+}
+  .live-dot { display:inline-flex; align-items:center; gap:8px; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--foam-dim); }
+  .live-dot .dot { width:9px; height:9px; border-radius:50%; background:var(--foam-dim); }
+  .live-dot.on { color:var(--signal); }
+  .live-dot.on .dot { background:var(--signal); }
+
+  /* nr_i18n (2026-09-11) + nr_langdd (2026-09-12, SF: "it takes up too much space"): the language switch is ONE
+     PILL showing the current language; a tap opens the six under it. The two-letter CODES carry the meaning, flags
+     decorate; the current row is bold with a check mark. Works in black and white. Native <details>: no script to open. */
+  .nrLang { position: relative; display: inline-flex; align-items: center; font-size: 0.66rem; letter-spacing: 0.06em; color: var(--foam, #fff); }
+  .nrLang .nrDd { position: relative; }
+  .nrLang .nrDd > summary { list-style: none; display: inline-flex; align-items: center; gap: 5px; padding: 1px 7px;
+    border: 1px solid var(--nrLangEdge, var(--signal, #f7931a)); border-radius: 3px; cursor: pointer; font-weight: 700; line-height: 1.4; user-select: none; }
+  .nrLang .nrDd > summary::-webkit-details-marker { display: none; }
+  .nrDd > summary { color: var(--foam-dim, var(--ink-dim, var(--mist, #9aa))); }
+  .nrDd > summary:hover, .nrDd[open] > summary { color: var(--foam, var(--ink, var(--paper, #fff))); }
+  .nrLang .nrDd > summary:focus-visible { outline: 3px solid var(--signal, #f5a623); outline-offset: 2px; }
+  .nrLang .nrCaret { display: inline-block; font-size: 0.8em; transition: transform .15s; }
+  .nrLang .nrDd[open] > summary .nrCaret { transform: rotate(180deg); }
+  .nrLang .nrDdMenu { position: absolute; right: 0; top: calc(100% + 4px); min-width: 12em; max-width: calc(100vw - 16px);
+    display: grid; gap: 2px; padding: 4px; background: #0f141b; color: var(--foam, #fff); border: 1px solid currentColor;
+    border-radius: 8px; z-index: 50; box-shadow: 0 6px 18px rgba(0,0,0,.45); text-align: left; }
+  .nrLang .nrDdMenu a, .nrLang .nrDdMenu .cur { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px;
+    white-space: nowrap; text-decoration: none; color: inherit; border: 2px solid transparent; min-height: 32px; box-sizing: border-box;
+    text-transform: none; font-weight: 400; }
+  .nrLang .nrDdMenu a:hover, .nrLang .nrDdMenu a:focus-visible { border-color: currentColor; outline: none; }
+  .nrLang .nrDdMenu b { font-weight: 700; }
+  .nrLang .nrDdMenu .cur { font-weight: 700; }
+  .nrLang .nrDdMenu .nm { font-weight: 400; letter-spacing: 0; }
+  .nrLang .nrDdMenu .ck { margin-left: auto; font-weight: 700; }
+  /* closed = hidden, said outright: an author display rule on the menu must never beat the browser's own hiding */
+  .nrLang .nrDd:not([open]) > .nrDdMenu { display: none; }
+  /* nr_djpill (2026-09-14, SF: "the language pill on the dj guide page is broken"): this page styles EVERY
+     <details>/<summary> for its FAQ (border, background, overflow:hidden, a "+" after the summary). The pill is a
+     <details> too. Keep the FAQ look off it. */
+  .nrLang .nrDd { border: 0; background: transparent; overflow: visible; }
+  .nrLang .nrDd > summary::after, .nrLang .nrDd[open] > summary::after { content: none; }
+  .nrLang .nrDd > summary { justify-content: flex-start; font-size: inherit; }
+  /* nr_djmenu: this page's menu bar was the only one that did not wrap on phones (its items squeezed to three lines) */
+  .mainmenu { flex-wrap: wrap; }
+  @media (max-width: 560px) { .mainmenu { gap: 2px; padding: 6px 0; } .mainmenu a { font-size: 0.66rem; padding: 3px 8px; letter-spacing: 0.05em; } }
+  .nrLang svg { border-radius: 2px; flex: none; }
+  .nrEnCounts { font-size: 0.62rem; font-style: italic; opacity: 0.8; }
+  /* In the radio's main menu the pill sits right after "Log in", at the menu's own small size. */
+  .mainmenu .nrLang { display: inline-flex; margin-left: 6px; }
+  /* nr_menuend (2026-09-15, SF: "LOG IN & language pill don't stick to the right of the menu bar anymore"): Log in
+     and the language pill are ONE group at the right end of its line, also when the menu wraps. */
+  .nrMenuEnd { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .nrMenuEnd .nrLang { margin-left: 2px; }
+  .mainmenu .nrLang .nrDd > summary { padding: 1px 7px; font-size: 0.62rem; letter-spacing: 0.04em; }
+  /* The jukebox-mode copy (the phone page behind the arcade QR) sits in the narrow #jukeBanner: the same small pill. */
+  #jukeBanner .nrLang .nrDd > summary { padding: 1px 6px; font-size: 0.62rem; letter-spacing: 0.04em; gap: 4px; }
+  /* that pill stands at the LEFT of the banner, so its list opens to the right, inside a 375 px screen */
+  #jukeBanner .nrLang .nrDdMenu { right: auto; left: 0; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="sitehead">
+    <div class="header-left">
+      <a href="/"><img class="hd-avatar" src="/assets/avatar.webp" alt="Noderunners Radio"></a>
+      <div class="live-dot" id="liveBadge"><span class="dot"></span><span id="liveText" data-i18n-soft="playBadgeOffline">offline</span></div>
+    </div>
+    <div class="brand">
+      <a href="/"><img class="logo" src="/assets/logo.svg" alt="Noderunners FM"></a>
+    </div>
+    <nav class="socials" aria-label="Social links" data-i18n-attr="aria-label:topSocialLinks">
+      <a href="https://t.me/noderunnersradio" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.6l-3.32 15.66c-.25 1.1-.9 1.38-1.83.86l-5.05-3.72-2.44 2.35c-.27.27-.5.5-1.02.5l.36-5.14 9.36-8.46c.4-.36-.09-.56-.63-.2L5.16 13.4.18 11.84c-1.08-.34-1.1-1.08.23-1.6L20.54 3.03c.9-.34 1.69.2 1.4 1.57z"/></svg></a>
+      <a href="https://github.com/LightningJukeboxBot/LightningJukeboxBot" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58l-.01-2.05c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.22.7.83.58A12 12 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/></svg></a>
+      <a href="https://x.com/NoderunnersFM" target="_blank" rel="noopener" aria-label="X" title="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.41l-5.8-7.58-6.64 7.58H.46l8.6-9.83L0 1.15h7.6l5.24 6.93 6.06-6.93zm-1.29 19.5h2.04L6.48 3.24H4.29L17.61 20.65z"/></svg></a>
+    </nav>
+  </header>
+  <nav class="mainmenu" aria-label="Site menu" data-i18n-attr="aria-label:topSiteMenu">
+    <a href="/" data-i18n="topMenuHome">Home</a>
+    <a href="/progress" data-i18n="topMenuProgress">Progress</a>
+    <a href="/dj-handbook" class="active" data-i18n="topMenuDjGuide">Guest DJ Guide</a>
+    <a href="/manifesto" data-i18n="topMenuManifesto">Manifesto</a>
+    <a href="/roadmap" data-i18n="topMenuRoadmap">Roadmap</a>
+    <span class="nrMenuEnd"><a href="/login" data-i18n="topMenuLogin">Log in</a><span class="nrLang" role="group" aria-label="Language"></span></span>
+  </nav>
+
+  <header class="mast">
+    <div class="eyebrow" data-i18n="djDiv1">Noderunners Radio · Crew Handbook</div>
+    <h1 data-i18n="djH11">Guest DJ Handbook</h1>
+    <p class="lede" data-i18n-html="djP1">Come aboard, plug in, and get your fair cut of the sats — the plain-language guide to spinning a live set aboard <span class="shipname">The Dread Node</span>.</p>
+    <div class="coords" data-i18n-html="djDiv2">— <span class="shipname">The Dread Node</span> · broadcasting from international waters —</div>
+  </header>
+
+  <div class="drydock" role="note" data-i18n-html="djDiv3">
+    <span class="ico" aria-hidden="true">⚓</span>
+    <span class="m"><b>Fresh rigging — live, but young.</b> Everything here works and has been tested with real sats, but we're actively building: expect rough edges, and the numbers below can still shift while the ship is being rebuilt.</span>
+  </div>
+
+  <section class="block">
+    <p class="intro-p" data-i18n="djP2">Here's what being a guest DJ on Noderunners gets you:</p>
+    <div class="panel" style="margin-top:12px;">
+      <div class="panel-body">
+        <div class="finegrid" style="margin-top:0;">
+          <div class="fine" data-i18n-html="djDiv4"><span class="tick">◆</span><span><b>Your own Lightning payout</b> — a wallet and a Lightning Address that's yours alone.</span></div>
+          <div class="fine" data-i18n-html="djDiv5"><span class="tick">◆</span><span><b>A live share of the tips</b> — while you're on air, a slice of every listener donation flows straight to that wallet, automatically.</span></div>
+          <div class="fine" data-i18n-html="djDiv6"><span class="tick">◆</span><span><b>A slot on the schedule</b> — and a berth in the crew.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><span class="sec-num">01</span><h2 data-i18n="djH21">Get your payout wallet</h2></div>
+    <p class="intro-p" data-i18n="djP3">This is where your sats will land. Takes about a minute — no bank, no sign-up forms, no ID.</p>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label" data-i18n-html="djDiv7"><span>Set up your Lightning wallet</span><span>~1 min</span></div>
+      <div class="panel-body">
+        <ol class="steps">
+          <li data-i18n-html="djLi1"><span class="s-t">Go to <a href="/register"><span class="mono">noderunnersradio.com/register</span></a></span><span class="s-d">On any phone or laptop browser. No wallet needed beforehand — no email, no KYC, nothing.</span></li>
+          <li data-i18n-html="djLi2"><span class="s-t">Pick your DJ name + a passphrase</span><span class="s-d">The name your listeners know you by — <b>set in stone</b>, one DJ = one name. The passphrase (min 12 characters, 4 random words work great) is your login. You also get a one-time <b>recovery code</b> — write it down somewhere safe; it's your way back in if the passphrase ever goes overboard.</span></li>
+          <li data-i18n-html="djLi3"><span class="s-t">The station mints your wallet</span><span class="s-d">You instantly get a Lightning wallet at the station <em>and</em> a Lightning Address (your own <span class="mono">you@…</span> that can receive sats from anywhere).</span></li>
+          <li data-i18n-html="djLi4"><span class="s-t">Log in at <a href="/login"><span class="mono">noderunnersradio.com/login</span></a> — your quarters</span><span class="s-d">See the sats you've earned, open your station wallet, upload &amp; crop your avatar, write your blurb — and you get your own page at <span class="mono">noderunnersradio.com/YourName</span>.</span></li>
+          <li data-i18n-html="djLi5"><span class="s-t">Best move: set your OWN payout address</span><span class="s-d">Got your own wallet (Wallet of Satoshi, Phoenix, your own node…)? Paste its Lightning Address in your quarters and session payouts fly straight to <b>you</b> — never parking at the station. The station is not a bank; self-custody, always.</span></li>
+        </ol>
+        <div class="note guard" data-i18n-html="djDiv8"><b>We will never ask</b> for your wallet password, seed words, or admin key — not once, not ever. If anyone claiming to be the station asks for them, it isn't us.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><span class="sec-num">02</span><h2 data-i18n="djH22">Book your slot</h2></div>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label" data-i18n-html="djDiv9"><span>Request a studio hour</span></div>
+      <div class="panel-body">
+        <ol class="steps">
+          <li data-i18n-html="djLi6"><span class="s-t">You'll need a Telegram account for this bit</span><span class="s-d">It's how we confirm your slot and where the crew talks. Free, takes 2 minutes: <a href="https://telegram.org/apps" target="_blank" rel="noopener">get Telegram here</a>, then set your <b>@username</b> — iPhone: Settings → tap your profile → Username · Android: ☰ menu → Settings → tap your name → Username. That @username goes in the form.</span></li>
+          <li data-i18n-html="djLi7"><span class="s-t">Go to <a href="/dj/request-slot"><span class="mono">noderunnersradio.com/dj/request-slot</span></a></span><span class="s-d">Straight from the same DJ page.</span></li>
+          <li data-i18n-html="djLi8"><span class="s-t">Pick a date &amp; studio hour</span><span class="s-d">It shows your local time right next to CET and UTC, so there's no clock-maths.</span></li>
+          <li data-i18n-html="djLi9"><span class="s-t">Send it, then watch the Telegram</span><span class="s-d">You'll get a ping in <a href="https://t.me/noderunnersradio" target="_blank" rel="noopener">t.me/noderunnersradio</a> once your slot's approved.</span></li>
+        </ol>
+        <div class="note" data-i18n-html="djDiv10"><b>Joining the crew group is not optional</b> &mdash; no chat presence, no slot. Telegram does not let us message you first, so you come to us once and everything works from then on. <b>Join here</b>: <a href="https://t.me/noderunnersradio" target="_blank" rel="noopener">t.me/noderunnersradio</a> — that's where your slot gets confirmed and the stream key gets handed over. ⚠ When you join, the bouncer bot (<b>Rose</b>) will ask you to <b>prove you're human</b> — tap the button she shows you, or she'll kick you back onto the dock. Then say hi, so we can put a voice to the name.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><span class="sec-num">03</span><h2 data-i18n="djH23">Go live</h2></div>
+    <div class="panel" style="margin-top:14px;">
+      <div class="panel-label" data-i18n-html="djDiv11"><span>Stream in</span></div>
+      <div class="panel-body">
+        <p style="color:var(--foam-dim); font-size:.94rem;" data-i18n-html="djP4">The station broadcasts video through <b style="color:var(--foam)">Owncast</b> (you send us your feed from <b style="color:var(--foam)">OBS</b>). When your slot's approved we hand you a <b style="color:var(--foam)">private stream key</b> and the exact OBS settings — one-to-one, so this part we walk through with you directly.</p>
+        <p style="color:var(--foam-dim); font-size:.94rem; margin-top:10px;" data-i18n-html="djP5">Keep your scene <b style="color:var(--foam)">simple: your camera/set filling the screen.</b> No baked-in banners or QR images — the station's graphics (tonight's lineup, the tip QR, live donation popups) ride on top through one browser-source link we give you.</p>
+        <div class="note" data-i18n-html="djDiv12">Gear check, levels, and the stream key all get sorted <b>with</b> you before you go on. No guesswork, no going live cold.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><span class="sec-num">04</span><h2 data-i18n="djH24">How the sats split</h2></div>
+    <p class="intro-p" data-i18n="djP6">When you're live, listener tips are shared between you and the station. Here's exactly how — no mystery math.</p>
+
+    <div class="ladder" style="margin-top:16px;">
+      <div class="tier now">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="djDiv13"><span class="pill on">Now</span><span class="nm">Rebuild rate</span></div>
+          <div class="splitnums"><span class="r">75</span><span class="sep">/</span><span class="y">25</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 75 percent, You 25 percent" data-i18n-attr="aria-label:djAttr1"><div class="seg-r" style="flex:75"></div><div class="seg-y" style="flex:25"></div></div>
+        <div class="tier-cap" data-i18n="djDiv14">Studio's mid-repair — mains blown, gear half-apart. The bigger early cut is the bilge pump getting the ship seaworthy again.</div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="djDiv15"><span class="pill">Next</span><span class="nm">Refloating</span></div>
+          <div class="splitnums"><span class="r">69</span><span class="sep">/</span><span class="y">31</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 69 percent, You 31 percent" data-i18n-attr="aria-label:djAttr2"><div class="seg-r" style="flex:69"></div><div class="seg-y" style="flex:31"></div></div>
+        <div class="tier-cap" data-i18n="djDiv16">As the essentials come back online, the split steps toward you.</div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="djDiv17"><span class="pill">Flying</span><span class="nm">Steady rate</span></div>
+          <div class="splitnums"><span class="r">60</span><span class="sep">/</span><span class="y">40</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 60 percent, You 40 percent" data-i18n-attr="aria-label:djAttr3"><div class="seg-r" style="flex:60"></div><div class="seg-y" style="flex:40"></div></div>
+        <div class="tier-cap" data-i18n="djDiv18">The shipshape rate once we're refloated — your long-haul cut.</div>
+      </div>
+
+      <div class="tier">
+        <div class="tier-top">
+          <div class="tier-name" data-i18n-html="djDiv19"><span class="pill">Endgame</span><span class="nm">The Pareto flip</span></div>
+          <div class="splitnums"><span class="r">21</span><span class="sep">/</span><span class="y">79</span></div>
+        </div>
+        <div class="bar" role="img" aria-label="Radio 21 percent, You 79 percent" data-i18n-attr="aria-label:djAttr4"><div class="seg-r" style="flex:21"></div><div class="seg-y" style="flex:79"></div></div>
+        <div class="tier-cap" data-i18n-html="djDiv20">When the station goes pro — a true FM/AM broadcaster, quietly carrying the Bitcoin network's heartbeat — the ladder flips: 21% keeps the lights on, 79% to the DJs. That's the whole point of the climb. (Full story in the <a href="/manifesto">manifesto</a>.)</div>
+      </div>
+    </div>
+
+    <div class="legend" data-i18n-html="djDiv21"><span><i class="sw r"></i> station's share</span><span><i class="sw y"></i> your share</span></div>
+
+    <div class="why">
+      <span class="eyebrow" data-i18n="djSpan1">Straight with you</span>
+      <p data-i18n-html="djP7">Our ship, recently named <span class="shipname">"The Dread Node"</span>, has been crewed by a few rag-tag plebs these past years, proper Noderunners, one and all! However, right now she's taking on water — main speakers blown, studio half-apart. The good news: we keep on keeping on! The bigger early cut isn't a house tax, it's a bilge pump that will help us bootstrap from the wreckage of the first iteration of this project. It steps <em>down</em> in your favour as we refloat, and the station's real living is meant to come from the music catalogue over time — not from skimming live performers, nor musicians in general! The goal is everyone flying, not just the captain.</p>
+    </div>
+
+    <div class="finegrid">
+      <div class="fine" data-i18n-html="djDiv22"><span class="tick">›</span><span>During a live session, donations <b>pool up as one pot.</b> At session's end the pot settles: the DJ share is <b>divided evenly</b> among that night's lineup and paid out automatically, in <b>whole sats</b> — leftover fractions go to the station's rebuild jar, transparently.</span></div>
+      <div class="fine" data-i18n-html="djDiv23"><span class="tick">›</span><span>Payout is <b>automatic</b> — no invoicing, no chasing anyone. Want extra tips just for you? Share your own address with your fans — that's outside the pool and all yours.</span></div>
+      <div class="fine" data-i18n-html="djDiv24"><span class="tick">›</span><span><b>Jukebox track-requests are a separate pot</b> — those pay the artists (21% station / 79% the OGs), nothing to do with live tips.</span></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="sec-head"><span class="sec-num">05</span><h2 data-i18n="djH25">Fine print &amp; FAQ</h2></div>
+    <div class="faq">
+      <details>
+        <summary data-i18n="djSummary1">When do I actually get paid?</summary>
+        <div class="a" data-i18n="djDiv25">At the end of the session, automatically. Donations pool up while the lineup plays; when the session closes, the pot settles and your share lands in your station wallet in one fee-free payment. Withdraw whenever you like. This is value-for-value, not a salary: no tips means nothing to split.</div>
+      </details>
+      <details>
+        <summary data-i18n="djSummary2">Do you ever see my keys or password?</summary>
+        <div class="a" data-i18n="djDiv26">No. Your wallet is yours. The station only needs your public Lightning Address to route your share of the tips — never anything that could spend your sats.</div>
+      </details>
+      <details>
+        <summary data-i18n="djSummary3">What counts as "my set"?</summary>
+        <div class="a" data-i18n="djDiv27">The window you're booked and live on air. The station switches your split on when you start and off when you wrap.</div>
+      </details>
+      <details>
+        <summary data-i18n="djSummary4">Can the percentage change on me?</summary>
+        <div class="a" data-i18n-html="djDiv28">Only in your favour. It steps <em>down</em> for the station as the studio heals, following the ladder above. Whatever the current rate is, it'll always be posted right here.</div>
+      </details>
+      <details>
+        <summary data-i18n="djSummary5">Do I need Telegram?</summary>
+        <div class="a" data-i18n-html="djDiv29">Yes, for now — it's where your slot gets confirmed and where the crew coordinates. A free account with an @username set is enough (the slot form shows you how), plus joining <b>t.me/noderunnersradio</b> — and when you join, answer the bouncer bot's are-you-human check or you'll be kicked. Nostr is welcome too, but optional.</div>
+      </details>
+      <details>
+        <summary data-i18n="djSummary6">I'm not technical — is this going to be hard?</summary>
+        <div class="a" data-i18n="djDiv30">No. Making the wallet is one page and one name. Going live we set up with you personally. If you can run OBS, you can DJ here.</div>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <div class="sig" data-i18n-html="djDiv31">Signed, from international waters — <b>Noderunners Radio</b></div>
+  </footer>
+
+<div class="nrEnCounts" data-i18n="englishCounts" hidden style="margin:18px 0 0;font-size:0.72rem;">Translated from English. If anything differs, the English text counts.</div>
+</div>
+
+<script>
+  // nr_i18n (2026-09-11, SF: six languages on all his sites). ONE page, one dictionary per language,
+  // English fallback. ?lang=xx for this view; a TAP on the switch also remembers it (localStorage nrLang).
+  // Never a reload: an open Lightning invoice must survive a language change. An English page is never
+  // rewritten -- the markup already says it. See plan/radio_i18n_runtime.py.
+  (function(){
+    var LANGS = ["en", "nl", "de", "fr", "es", "pt"];
+    var NAMES = {"en": "English", "nl": "Nederlands", "de": "Deutsch", "fr": "Français", "es": "Español", "pt": "Português"};
+    var LOCALES = {"en": "en-US", "nl": "nl-NL", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "pt": "pt-PT"};
+    var FLAGS = {"en": "<svg viewBox=\"0 0 60 30\" preserveAspectRatio=\"xMidYMid slice\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><clipPath id=\"nrGbS\"><path d=\"M0,0 v30 h60 v-30 z\"/><\/clipPath><clipPath id=\"nrGbT\"><path d=\"M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z\"/><\/clipPath><g clip-path=\"url(#nrGbS)\"><path d=\"M0,0 v30 h60 v-30 z\" fill=\"#012169\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" stroke=\"#FFF\" stroke-width=\"6\"/><path d=\"M0,0 L60,30 M60,0 L0,30\" clip-path=\"url(#nrGbT)\" stroke=\"#C8102E\" stroke-width=\"4\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#FFF\" stroke-width=\"10\"/><path d=\"M30,0 v30 M0,15 h60\" stroke=\"#C8102E\" stroke-width=\"6\"/><\/g><\/svg>", "nl": "<svg viewBox=\"0 0 9 6\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AE1C28\" d=\"M0 0h9v2H0z\"/><path fill=\"#FFF\" d=\"M0 2h9v2H0z\"/><path fill=\"#21468B\" d=\"M0 4h9v2H0z\"/><\/svg>", "de": "<svg viewBox=\"0 0 5 3\" preserveAspectRatio=\"none\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#000\" d=\"M0 0h5v1H0z\"/><path fill=\"#DD0000\" d=\"M0 1h5v1H0z\"/><path fill=\"#FFCE00\" d=\"M0 2h5v1H0z\"/><\/svg>", "fr": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#002395\" d=\"M0 0h1v2H0z\"/><path fill=\"#FFF\" d=\"M1 0h1v2H1z\"/><path fill=\"#ED2939\" d=\"M2 0h1v2H2z\"/><\/svg>", "es": "<svg viewBox=\"0 0 3 2\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#AA151B\" d=\"M0 0h3v2H0z\"/><path fill=\"#F1BF00\" d=\"M0 .5h3v1H0z\"/><\/svg>", "pt": "<svg viewBox=\"0 0 30 20\" width=\"18\" height=\"12\" aria-hidden=\"true\" focusable=\"false\"><path fill=\"#006600\" d=\"M0 0h12v20H0z\"/><path fill=\"#FF0000\" d=\"M12 0h18v20H12z\"/><circle cx=\"12\" cy=\"10\" r=\"4.2\" fill=\"#FFCC00\"/><\/svg>"};
+    var I18N = {
+      "en": {"djLi2": "<span class=\"s-t\">Pick your DJ name + a passphrase<\/span><span class=\"s-d\">The name your listeners know you by — <b>set in stone<\/b>, one DJ = one name. The passphrase (min 12 characters, 4 random words work great) is your login. You also get a one-time <b>recovery code<\/b> — write it down somewhere safe; it's your way back in if the passphrase ever goes overboard.<\/span>", "djDiv23": "<span class=\"tick\">›<\/span><span>Payout is <b>automatic<\/b> — no invoicing, no chasing anyone. Want extra tips just for you? Share your own address with your fans — that's outside the pool and all yours.<\/span>", "djH25": "Fine print & FAQ", "djP2": "Here's what being a guest DJ on Noderunners gets you:", "djDiv12": "Gear check, levels, and the stream key all get sorted <b>with<\/b> you before you go on. No guesswork, no going live cold.", "topMenuHome": "Home", "djSummary5": "Do I need Telegram?", "djDiv9": "<span>Request a studio hour<\/span>", "djDiv1": "Noderunners Radio · Crew Handbook", "djDiv31": "Signed, from international waters — <b>Noderunners Radio<\/b>", "djDiv19": "<span class=\"pill\">Endgame<\/span><span class=\"nm\">The Pareto flip<\/span>", "djDiv14": "Studio's mid-repair — mains blown, gear half-apart. The bigger early cut is the bilge pump getting the ship seaworthy again.", "topMenuDjGuide": "Guest DJ Guide", "djP7": "Our ship, recently named <span class=\"shipname\">\"The Dread Node\"<\/span>, has been crewed by a few rag-tag plebs these past years, proper Noderunners, one and all! However, right now she's taking on water — main speakers blown, studio half-apart. The good news: we keep on keeping on! The bigger early cut isn't a house tax, it's a bilge pump that will help us bootstrap from the wreckage of the first iteration of this project. It steps <em>down<\/em> in your favour as we refloat, and the station's real living is meant to come from the music catalogue over time — not from skimming live performers, nor musicians in general! The goal is everyone flying, not just the captain.", "topMenuManifesto": "Manifesto", "djDiv10": "<b>Joining the crew group is not optional<\/b> &mdash; no chat presence, no slot. Telegram does not let us message you first, so you come to us once and everything works from then on. <b>Join here<\/b>: <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> — that's where your slot gets confirmed and the stream key gets handed over. ⚠ When you join, the bouncer bot (<b>Rose<\/b>) will ask you to <b>prove you're human<\/b> — tap the button she shows you, or she'll kick you back onto the dock. Then say hi, so we can put a voice to the name.", "topMenuLogin": "Log in", "djDiv5": "<span class=\"tick\">◆<\/span><span><b>A live share of the tips<\/b> — while you're on air, a slice of every listener donation flows straight to that wallet, automatically.<\/span>", "djSummary1": "When do I actually get paid?", "topCoords": "broadcasting from international waters", "djP5": "Keep your scene <b style=\"color:var(--foam)\">simple: your camera/set filling the screen.<\/b> No baked-in banners or QR images — the station's graphics (tonight's lineup, the tip QR, live donation popups) ride on top through one browser-source link we give you.", "djLi3": "<span class=\"s-t\">The station mints your wallet<\/span><span class=\"s-d\">You instantly get a Lightning wallet at the station <em>and<\/em> a Lightning Address (your own <span class=\"mono\">you@…<\/span> that can receive sats from anywhere).<\/span>", "djH23": "Go live", "djDiv27": "The window you're booked and live on air. The station switches your split on when you start and off when you wrap.", "djLi1": "<span class=\"s-t\">Go to <a href=\"/register\"><span class=\"mono\">noderunnersradio.com/register<\/span><\/a><\/span><span class=\"s-d\">On any phone or laptop browser. No wallet needed beforehand — no email, no KYC, nothing.<\/span>", "djLi7": "<span class=\"s-t\">Go to <a href=\"/dj/request-slot\"><span class=\"mono\">noderunnersradio.com/dj/request-slot<\/span><\/a><\/span><span class=\"s-d\">Straight from the same DJ page.<\/span>", "djLi8": "<span class=\"s-t\">Pick a date &amp; studio hour<\/span><span class=\"s-d\">It shows your local time right next to CET and UTC, so there's no clock-maths.<\/span>", "djDiv30": "No. Making the wallet is one page and one name. Going live we set up with you personally. If you can run OBS, you can DJ here.", "djDiv26": "No. Your wallet is yours. The station only needs your public Lightning Address to route your share of the tips — never anything that could spend your sats.", "djP4": "The station broadcasts video through <b style=\"color:var(--foam)\">Owncast<\/b> (you send us your feed from <b style=\"color:var(--foam)\">OBS<\/b>). When your slot's approved we hand you a <b style=\"color:var(--foam)\">private stream key<\/b> and the exact OBS settings — one-to-one, so this part we walk through with you directly.", "djDiv13": "<span class=\"pill on\">Now<\/span><span class=\"nm\">Rebuild rate<\/span>", "djTitle": "The Dread Node — Guest DJ Handbook · Noderunners Radio", "djSummary6": "I'm not technical — is this going to be hard?", "djDiv28": "Only in your favour. It steps <em>down<\/em> for the station as the studio heals, following the ladder above. Whatever the current rate is, it'll always be posted right here.", "djP1": "Come aboard, plug in, and get your fair cut of the sats — the plain-language guide to spinning a live set aboard <span class=\"shipname\">The Dread Node<\/span>.", "playBadgeOffline": "offline", "djDiv20": "When the station goes pro — a true FM/AM broadcaster, quietly carrying the Bitcoin network's heartbeat — the ladder flips: 21% keeps the lights on, 79% to the DJs. That's the whole point of the climb. (Full story in the <a href=\"/manifesto\">manifesto<\/a>.)", "djSummary4": "Can the percentage change on me?", "djDiv17": "<span class=\"pill\">Flying<\/span><span class=\"nm\">Steady rate<\/span>", "djDiv4": "<span class=\"tick\">◆<\/span><span><b>Your own Lightning payout<\/b> — a wallet and a Lightning Address that's yours alone.<\/span>", "djLi6": "<span class=\"s-t\">You'll need a Telegram account for this bit<\/span><span class=\"s-d\">It's how we confirm your slot and where the crew talks. Free, takes 2 minutes: <a href=\"https://telegram.org/apps\" target=\"_blank\" rel=\"noopener\">get Telegram here<\/a>, then set your <b>@username<\/b> — iPhone: Settings → tap your profile → Username · Android: ☰ menu → Settings → tap your name → Username. That @username goes in the form.<\/span>", "djH22": "Book your slot", "djDiv18": "The shipshape rate once we're refloated — your long-haul cut.", "djH24": "How the sats split", "djDiv22": "<span class=\"tick\">›<\/span><span>During a live session, donations <b>pool up as one pot.<\/b> At session's end the pot settles: the DJ share is <b>divided evenly<\/b> among that night's lineup and paid out automatically, in <b>whole sats<\/b> — leftover fractions go to the station's rebuild jar, transparently.<\/span>", "djDiv11": "<span>Stream in<\/span>", "playBadgeLive": "live", "djH21": "Get your payout wallet", "djAttr3": "Radio 60 percent, You 40 percent", "djDiv2": "— <span class=\"shipname\">The Dread Node<\/span> · broadcasting from international waters —", "djDiv3": "\n    <span class=\"ico\" aria-hidden=\"true\">⚓<\/span>\n    <span class=\"m\"><b>Fresh rigging — live, but young.<\/b> Everything here works and has been tested with real sats, but we're actively building: expect rough edges, and the numbers below can still shift while the ship is being rebuilt.<\/span>\n  ", "djDiv24": "<span class=\"tick\">›<\/span><span><b>Jukebox track-requests are a separate pot<\/b> — those pay the artists (21% station / 79% the OGs), nothing to do with live tips.<\/span>", "djDiv6": "<span class=\"tick\">◆<\/span><span><b>A slot on the schedule<\/b> — and a berth in the crew.<\/span>", "djAttr1": "Radio 75 percent, You 25 percent", "djLi4": "<span class=\"s-t\">Log in at <a href=\"/login\"><span class=\"mono\">noderunnersradio.com/login<\/span><\/a> — your quarters<\/span><span class=\"s-d\">See the sats you've earned, open your station wallet, upload &amp; crop your avatar, write your blurb — and you get your own page at <span class=\"mono\">noderunnersradio.com/YourName<\/span>.<\/span>", "djLi5": "<span class=\"s-t\">Best move: set your OWN payout address<\/span><span class=\"s-d\">Got your own wallet (Wallet of Satoshi, Phoenix, your own node…)? Paste its Lightning Address in your quarters and session payouts fly straight to <b>you<\/b> — never parking at the station. The station is not a bank; self-custody, always.<\/span>", "djDiv8": "<b>We will never ask<\/b> for your wallet password, seed words, or admin key — not once, not ever. If anyone claiming to be the station asks for them, it isn't us.", "djDiv16": "As the essentials come back online, the split steps toward you.", "topMenuProgress": "Progress", "langLabel": "Language", "englishCounts": "Translated from English. If anything differs, the English text counts.", "djDiv7": "<span>Set up your Lightning wallet<\/span><span>~1 min<\/span>", "djAttr2": "Radio 69 percent, You 31 percent", "djDiv15": "<span class=\"pill\">Next<\/span><span class=\"nm\">Refloating<\/span>", "topSocialLinks": "Social links", "djP3": "This is where your sats will land. Takes about a minute — no bank, no sign-up forms, no ID.", "djSummary3": "What counts as \"my set\"?", "topMenuRoadmap": "Roadmap", "djSpan1": "Straight with you", "djDiv21": "<span><i class=\"sw r\"><\/i> station's share<\/span><span><i class=\"sw y\"><\/i> your share<\/span>", "djLi9": "<span class=\"s-t\">Send it, then watch the Telegram<\/span><span class=\"s-d\">You'll get a ping in <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> once your slot's approved.<\/span>", "djDiv29": "Yes, for now — it's where your slot gets confirmed and where the crew coordinates. A free account with an @username set is enough (the slot form shows you how), plus joining <b>t.me/noderunnersradio<\/b> — and when you join, answer the bouncer bot's are-you-human check or you'll be kicked. Nostr is welcome too, but optional.", "topSiteMenu": "Site menu", "djSummary2": "Do you ever see my keys or password?", "djP6": "When you're live, listener tips are shared between you and the station. Here's exactly how — no mystery math.", "djAttr4": "Radio 21 percent, You 79 percent", "djH11": "Guest DJ Handbook", "djDiv25": "At the end of the session, automatically. Donations pool up while the lineup plays; when the session closes, the pot settles and your share lands in your station wallet in one fee-free payment. Withdraw whenever you like. This is value-for-value, not a salary: no tips means nothing to split."},
+      "nl": {"djTitle": "The Dread Node — Gast-DJ-handboek · Noderunners Radio", "djDiv1": "Noderunners Radio · Crewhandboek", "djH11": "Gast-DJ-handboek", "djP1": "Kom aan boord, plug in en krijg je eerlijke deel van de sats — de gids in gewone taal voor het draaien van een live set aan boord van <span class=\"shipname\">The Dread Node<\/span>.", "djDiv2": "— <span class=\"shipname\">The Dread Node<\/span> · zendt uit vanuit internationale wateren —", "djDiv3": "\n    <span class=\"ico\" aria-hidden=\"true\">⚓<\/span>\n    <span class=\"m\"><b>Vers opgetuigd — live, maar jong.<\/b> Alles hier werkt en is getest met echte sats, maar we bouwen volop door: reken op ruwe randjes, en de getallen hieronder kunnen nog verschuiven terwijl het schip wordt herbouwd.<\/span>\n  ", "djP2": "Dit krijg je als gast-DJ bij Noderunners:", "djDiv4": "<span class=\"tick\">◆<\/span><span><b>Je eigen Lightning-uitbetaling<\/b> — een wallet en een Lightning Address die alleen van jou zijn.<\/span>", "djDiv5": "<span class=\"tick\">◆<\/span><span><b>Een live deel van de tips<\/b> — terwijl jij in de lucht bent, stroomt een stukje van elke donatie van luisteraars automatisch rechtstreeks naar die wallet.<\/span>", "djDiv6": "<span class=\"tick\">◆<\/span><span><b>Een plek in de programmering<\/b> — en een vaste stek bij de crew.<\/span>", "djH21": "Regel je uitbetalingswallet", "djP3": "Hier landen je sats. Kost ongeveer een minuut — geen bank, geen aanmeldformulieren, geen ID.", "djDiv7": "<span>Zet je Lightning-wallet op<\/span><span>~1 min<\/span>", "djLi1": "<span class=\"s-t\">Ga naar <a href=\"/register\"><span class=\"mono\">noderunnersradio.com/register<\/span><\/a><\/span><span class=\"s-d\">In elke browser, op je telefoon of laptop. Je hebt vooraf geen wallet nodig — geen e-mail, geen KYC, niks.<\/span>", "djLi2": "<span class=\"s-t\">Kies je DJ-naam + een wachtzin<\/span><span class=\"s-d\">De naam waaronder je luisteraars je kennen — <b>in steen gebeiteld<\/b>, één DJ = één naam. De wachtzin (minstens 12 tekens, 4 willekeurige woorden werken prima) is je login. Je krijgt ook een eenmalige <b>herstelcode<\/b> — schrijf die op en bewaar hem op een veilige plek; daarmee kom je weer binnen als je wachtzin ooit overboord slaat.<\/span>", "djLi3": "<span class=\"s-t\">Het station maakt je wallet aan<\/span><span class=\"s-d\">Je krijgt meteen een Lightning-wallet bij het station <em>en<\/em> een Lightning Address (je eigen <span class=\"mono\">jouwnaam@…<\/span>, waarmee je van overal sats kunt ontvangen).<\/span>", "djLi4": "<span class=\"s-t\">Log in op <a href=\"/login\"><span class=\"mono\">noderunnersradio.com/login<\/span><\/a> — je hut<\/span><span class=\"s-d\">Bekijk de sats die je verdiend hebt, open je stationswallet, upload &amp; snijd je avatar bij, schrijf je bio — en je krijgt je eigen pagina op <span class=\"mono\">noderunnersradio.com/JouwNaam<\/span>.<\/span>", "djLi5": "<span class=\"s-t\">Beste zet: stel je EIGEN uitbetalingsadres in<\/span><span class=\"s-d\">Heb je een eigen wallet (Wallet of Satoshi, Phoenix, je eigen node…)? Plak het Lightning Address daarvan in je hut en sessie-uitbetalingen vliegen rechtstreeks naar <b>jou<\/b> — ze parkeren nooit bij het station. Het station is geen bank; self-custody, altijd.<\/span>", "djDiv8": "<b>We zullen je nooit vragen<\/b> om het wachtwoord van je wallet, je seedwoorden of je admin key — niet één keer, nooit ofte nimmer. Vraagt iemand die zich uitgeeft voor het station erom? Dan zijn wij het niet.", "djH22": "Boek je tijdslot", "djDiv9": "<span>Vraag een studio-uur aan<\/span>", "djLi6": "<span class=\"s-t\">Voor dit stukje heb je een Telegram-account nodig<\/span><span class=\"s-d\">Daarmee bevestigen we je slot, en daar praat de crew. Gratis, kost 2 minuten: <a href=\"https://telegram.org/apps\" target=\"_blank\" rel=\"noopener\">download Telegram hier<\/a>, en stel dan je <b>@username<\/b> in — iPhone: Instellingen (Settings) → tik op je profiel → Gebruikersnaam (Username) · Android: ☰ menu → Instellingen (Settings) → tik op je naam → Gebruikersnaam (Username). Die @username vul je in op het formulier.<\/span>", "djLi7": "<span class=\"s-t\">Ga naar <a href=\"/dj/request-slot\"><span class=\"mono\">noderunnersradio.com/dj/request-slot<\/span><\/a><\/span><span class=\"s-d\">Direct vanaf dezelfde DJ-pagina.<\/span>", "djLi8": "<span class=\"s-t\">Kies een datum &amp; studio-uur<\/span><span class=\"s-d\">Je ziet je eigen lokale tijd direct naast CET en UTC, dus geen gedoe met omrekenen.<\/span>", "djLi9": "<span class=\"s-t\">Verstuur het en hou Telegram in de gaten<\/span><span class=\"s-d\">Je krijgt een seintje in <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> zodra je slot is goedgekeurd.<\/span>", "djDiv10": "<b>Lid worden van de crewgroep is niet optioneel<\/b> &mdash; niet in de chat, geen slot. Telegram laat ons jou niet als eerste een bericht sturen, dus jij komt één keer naar ons toe en vanaf dan werkt alles. <b>Kom hier binnen<\/b>: <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> — daar wordt je slot bevestigd en krijg je de stream key. ⚠ Als je binnenkomt, vraagt de uitsmijterbot (<b>Rose<\/b>) je om te <b>bewijzen dat je een mens bent<\/b> — tik op de knop die ze je laat zien, anders schopt ze je terug de kade op. Zeg daarna even hoi, zodat we een stem bij de naam hebben.", "djH23": "Live gaan", "djDiv11": "<span>Je stream naar ons<\/span>", "djP4": "Het station zendt video uit via <b style=\"color:var(--foam)\">Owncast<\/b> (jij stuurt ons je beeld vanuit <b style=\"color:var(--foam)\">OBS<\/b>). Als je slot is goedgekeurd, geven we je een <b style=\"color:var(--foam)\">persoonlijke stream key<\/b> en de precieze OBS-instellingen — één-op-één, dus dit deel lopen we direct samen met je door.", "djP5": "Hou je scene <b style=\"color:var(--foam)\">simpel: je camera/set vult het scherm.<\/b> Geen ingebakken banners of QR-plaatjes — de graphics van het station (de line-up van vanavond, de tip-QR, live donatiepopups) liggen eroverheen via één browser-source-link die we je geven.", "djDiv12": "Apparatuurcheck, geluidsniveaus en de stream key regelen we allemaal <b>samen met<\/b> jou voordat je de lucht in gaat. Geen gegok, geen koude start.", "djH24": "Hoe de sats verdeeld worden", "djP6": "Als je live bent, worden de tips van luisteraars gedeeld tussen jou en het station. Zo gaat het precies — geen vage rekensommen.", "djDiv13": "<span class=\"pill on\">Nu<\/span><span class=\"nm\">Herbouwtarief<\/span>", "djAttr1": "Radio 75 procent, jij 25 procent", "djDiv14": "Studio in reparatie — hoofdspeakers opgeblazen, apparatuur half uit elkaar. Het grotere deel in het begin is de lenspomp die het schip weer zeewaardig maakt.", "djDiv15": "<span class=\"pill\">Straks<\/span><span class=\"nm\">Vlottrekken<\/span>", "djAttr2": "Radio 69 procent, jij 31 procent", "djDiv16": "Naarmate de belangrijkste dingen weer werken, schuift de verdeling jouw kant op.", "djDiv17": "<span class=\"pill\">Op koers<\/span><span class=\"nm\">Vast tarief<\/span>", "djAttr3": "Radio 60 procent, jij 40 procent", "djDiv18": "Het piekfijne tarief zodra we weer vlot liggen — jouw deel voor de lange reis.", "djDiv19": "<span class=\"pill\">Eindspel<\/span><span class=\"nm\">De Pareto-flip<\/span>", "djAttr4": "Radio 21 procent, jij 79 procent", "djDiv20": "Als het station pro gaat — een echte FM/AM-zender, die stilletjes de hartslag van het Bitcoin-netwerk meedraagt — dan klapt de ladder om: 21% houdt het licht aan, 79% naar de DJ's. Daar draait de hele klim om. (Het volledige verhaal staat in het <a href=\"/manifesto\">manifest<\/a>.)", "djDiv21": "<span><i class=\"sw r\"><\/i> deel van het station<\/span><span><i class=\"sw y\"><\/i> jouw deel<\/span>", "djSpan1": "Eerlijk is eerlijk", "djP7": "Ons schip, sinds kort <span class=\"shipname\">\"The Dread Node\"<\/span> gedoopt, is de afgelopen jaren bemand door een zootje ongeregelde plebs, echte Noderunners, stuk voor stuk! Maar op dit moment maakt ze water — hoofdspeakers opgeblazen, studio half uit elkaar. Het goede nieuws: we gaan gewoon door! Het grotere deel in het begin is geen afdracht aan het huis, het is een lenspomp die ons helpt op te krabbelen uit het wrak van de eerste versie van dit project. Het stapt <em>omlaag<\/em> in jouw voordeel naarmate we weer vlot komen, en het echte levensonderhoud van het station hoort op den duur uit de muziekcatalogus te komen — niet uit het afromen van live-artiesten, en ook niet van muzikanten in het algemeen! Het doel is dat iedereen op volle zeilen vaart, niet alleen de kapitein.", "djDiv22": "<span class=\"tick\">›<\/span><span>Tijdens een live sessie <b>gaan donaties samen in één pot.<\/b> Aan het eind van de sessie wordt de pot afgerekend: het DJ-deel wordt <b>gelijk verdeeld<\/b> over de line-up van die avond en automatisch uitbetaald, in <b>hele sats<\/b> — overgebleven stukjes gaan naar de herbouwpot van het station, transparant.<\/span>", "djDiv23": "<span class=\"tick\">›<\/span><span>Uitbetalen gaat <b>automatisch<\/b> — geen facturen sturen, niemand achter de broek zitten. Wil je extra tips alleen voor jezelf? Deel je eigen adres met je fans — dat valt buiten de pool en is helemaal van jou.<\/span>", "djDiv24": "<span class=\"tick\">›<\/span><span><b>Nummerverzoeken via de jukebox zijn een aparte pot<\/b> — die betalen de artiesten (21% station / 79% de OG's), en hebben niets met live tips te maken.<\/span>", "djH25": "Kleine lettertjes & FAQ", "djSummary1": "Wanneer krijg ik nou echt betaald?", "djDiv25": "Aan het eind van de sessie, automatisch. Donaties komen samen terwijl de line-up draait; als de sessie sluit, wordt de pot afgerekend en landt jouw deel in je stationswallet, in één betaling zonder fee. Opnemen kan wanneer je wilt. Dit is value-for-value, geen salaris: zonder tips valt er niks te verdelen.", "djSummary2": "Zien jullie ooit mijn sleutels of wachtwoord?", "djDiv26": "Nee. Je wallet is van jou. Het station heeft alleen je openbare Lightning Address nodig om jouw deel van de tips naar je toe te sturen — nooit iets waarmee je sats uitgegeven kunnen worden.", "djSummary3": "Wat telt als \"mijn set\"?", "djDiv27": "Het tijdslot waarvoor je geboekt bent en waarin je live in de lucht bent. Het station zet je verdeling aan als je begint en uit als je afrondt.", "djSummary4": "Kan het percentage ineens tegen me veranderen?", "djDiv28": "Alleen in jouw voordeel. Het stapt <em>omlaag<\/em> voor het station naarmate de studio herstelt, volgens de ladder hierboven. Wat het huidige tarief ook is, het staat altijd hier.", "djSummary5": "Heb ik Telegram nodig?", "djDiv29": "Ja, voorlopig wel — daar wordt je slot bevestigd en daar stemt de crew alles af. Een gratis account met een ingestelde @username is genoeg (het slotformulier laat zien hoe). Word daarnaast lid van <b>t.me/noderunnersradio<\/b> — en als je binnenkomt, beantwoord dan de ben-je-een-mens-check van de uitsmijterbot, anders word je eruit geschopt. Nostr is ook welkom, maar optioneel.", "djSummary6": "Ik ben niet technisch — wordt dit moeilijk?", "djDiv30": "Nee. De wallet maken is één pagina en één naam. Live gaan zetten we persoonlijk samen met je op. Kun je OBS bedienen, dan kun je hier DJ'en.", "djDiv31": "Getekend, vanuit internationale wateren — <b>Noderunners Radio<\/b>", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Inloggen", "topSiteMenu": "Sitemenu", "langLabel": "Taal", "topMenuProgress": "Voortgang", "topMenuDjGuide": "Gast-DJ-gids", "englishCounts": "Vertaald uit het Engels. Wijkt er iets af, dan geldt de Engelse tekst.", "topCoords": "zendt uit vanuit internationale wateren", "playBadgeLive": "live", "topSocialLinks": "Sociale media", "topMenuHome": "Home"},
+      "de": {"djTitle": "The Dread Node — Gast-DJ-Handbuch · Noderunners Radio", "djDiv1": "Noderunners Radio · Crew-Handbuch", "djH11": "Gast-DJ-Handbuch", "djP1": "Komm an Bord, stöpsel dich ein und hol dir deinen fairen Anteil an den sats — die Anleitung in einfachen Worten, um ein Live-Set an Bord von <span class=\"shipname\">The Dread Node<\/span> aufzulegen.", "djDiv2": "— <span class=\"shipname\">The Dread Node<\/span> · sendet aus internationalen Gewässern —", "djDiv3": "\n    <span class=\"ico\" aria-hidden=\"true\">⚓<\/span>\n    <span class=\"m\"><b>Frische Takelage — live, aber jung.<\/b> Alles hier funktioniert und wurde mit echten sats getestet, aber wir bauen aktiv weiter: Rechne mit Ecken und Kanten, und die Zahlen unten können sich noch verschieben, während das Schiff wieder aufgebaut wird.<\/span>\n  ", "djP2": "Das bekommst du als Gast-DJ bei Noderunners:", "djDiv4": "<span class=\"tick\">◆<\/span><span><b>Deine eigene Lightning-Auszahlung<\/b> — eine Wallet und eine Lightning-Adresse, die nur dir gehören.<\/span>", "djDiv5": "<span class=\"tick\">◆<\/span><span><b>Einen Live-Anteil am Trinkgeld<\/b> — solange du auf Sendung bist, fließt ein Stück jeder Hörerspende automatisch direkt in diese Wallet.<\/span>", "djDiv6": "<span class=\"tick\">◆<\/span><span><b>Einen Platz im Sendeplan<\/b> — und eine Koje in der Crew.<\/span>", "djH21": "Hol dir deine Auszahlungs-Wallet", "djP3": "Hier landen deine sats. Dauert etwa eine Minute — keine Bank, keine Anmeldeformulare, kein Ausweis.", "djDiv7": "<span>Richte deine Lightning-Wallet ein<\/span><span>~1 Min.<\/span>", "djLi1": "<span class=\"s-t\">Geh auf <a href=\"/register\"><span class=\"mono\">noderunnersradio.com/register<\/span><\/a><\/span><span class=\"s-d\">Im Browser auf jedem Handy oder Laptop. Vorher keine Wallet nötig — keine E-Mail, kein KYC, nichts.<\/span>", "djLi2": "<span class=\"s-t\">Wähl deinen DJ-Namen + eine Passphrase<\/span><span class=\"s-d\">Der Name, unter dem deine Hörer dich kennen — <b>in Stein gemeißelt<\/b>, ein DJ = ein Name. Die Passphrase (mindestens 12 Zeichen, 4 zufällige Wörter funktionieren super) ist dein Login. Du bekommst außerdem einen einmaligen <b>Wiederherstellungscode<\/b> — schreib ihn auf und verwahr ihn an einem sicheren Ort; damit kommst du wieder rein, falls die Passphrase je über Bord geht.<\/span>", "djLi3": "<span class=\"s-t\">Der Sender richtet deine Wallet ein<\/span><span class=\"s-d\">Du bekommst sofort eine Lightning-Wallet beim Sender <em>und<\/em> eine Lightning-Adresse (deine eigene <span class=\"mono\">du@…<\/span>, die von überall sats empfangen kann).<\/span>", "djLi4": "<span class=\"s-t\">Log dich ein unter <a href=\"/login\"><span class=\"mono\">noderunnersradio.com/login<\/span><\/a> — deine Kajüte<\/span><span class=\"s-d\">Sieh dir die sats an, die du verdient hast, öffne deine Sender-Wallet, lade deinen Avatar hoch &amp; schneide ihn zu, schreib deinen Kurztext — und du bekommst deine eigene Seite unter <span class=\"mono\">noderunnersradio.com/DeinName<\/span>.<\/span>", "djLi5": "<span class=\"s-t\">Am besten: Leg deine EIGENE Auszahlungsadresse fest<\/span><span class=\"s-d\">Du hast eine eigene Wallet (Wallet of Satoshi, Phoenix, deine eigene Node…)? Füg ihre Lightning-Adresse in deiner Kajüte ein, und Session-Auszahlungen fliegen direkt zu <b>dir<\/b> — sie parken nie beim Sender. Der Sender ist keine Bank; Selbstverwahrung, immer.<\/span>", "djDiv8": "<b>Wir fragen dich niemals<\/b> nach deinem Wallet-Passwort, deinen Seed-Wörtern oder deinem Admin-Key — nicht ein einziges Mal, niemals. Wenn jemand, der sich als der Sender ausgibt, danach fragt, dann sind das nicht wir.", "djH22": "Buch deinen Slot", "djDiv9": "<span>Frag eine Studiostunde an<\/span>", "djLi6": "<span class=\"s-t\">Für diesen Teil brauchst du einen Telegram-Account<\/span><span class=\"s-d\">Darüber bestätigen wir deinen Slot, und dort redet die Crew. Kostenlos, dauert 2 Minuten: <a href=\"https://telegram.org/apps\" target=\"_blank\" rel=\"noopener\">hol dir Telegram hier<\/a>, dann leg deinen <b>@Benutzernamen<\/b> fest — iPhone: Einstellungen → auf dein Profil tippen → Benutzername · Android: ☰-Menü → Einstellungen → auf deinen Namen tippen → Benutzername. Dieser @Benutzername kommt ins Formular.<\/span>", "djLi7": "<span class=\"s-t\">Geh auf <a href=\"/dj/request-slot\"><span class=\"mono\">noderunnersradio.com/dj/request-slot<\/span><\/a><\/span><span class=\"s-d\">Direkt von derselben DJ-Seite aus.<\/span>", "djLi8": "<span class=\"s-t\">Wähl ein Datum &amp; eine Studiostunde<\/span><span class=\"s-d\">Du siehst deine Ortszeit direkt neben CET und UTC, also kein Umrechnen.<\/span>", "djLi9": "<span class=\"s-t\">Abschicken, dann Telegram im Auge behalten<\/span><span class=\"s-d\">Du bekommst einen Ping in <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a>, sobald dein Slot freigegeben ist.<\/span>", "djDiv10": "<b>Der Crew-Gruppe beizutreten ist nicht optional<\/b> &mdash; keine Präsenz im Chat, kein Slot. Telegram lässt uns dir nicht zuerst schreiben, also kommst du einmal zu uns, und ab dann läuft alles. <b>Tritt hier bei<\/b>: <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> — dort wird dein Slot bestätigt und der Stream-Key übergeben. ⚠ Wenn du beitrittst, bittet dich der Türsteher-Bot (<b>Rose<\/b>), <b>zu beweisen, dass du ein Mensch bist<\/b> — tipp auf den Button, den sie dir zeigt, sonst wirft sie dich zurück auf den Kai. Dann sag Hallo, damit wir dem Namen eine Stimme zuordnen können.", "djH23": "Auf Sendung gehen", "djDiv11": "<span>Stream einspeisen<\/span>", "djP4": "Der Sender überträgt Video über <b style=\"color:var(--foam)\">Owncast<\/b> (du schickst uns deinen Feed aus <b style=\"color:var(--foam)\">OBS<\/b>). Wenn dein Slot freigegeben ist, geben wir dir einen <b style=\"color:var(--foam)\">privaten Stream-Key<\/b> und die genauen OBS-Einstellungen — ganz persönlich, diesen Teil gehen wir also direkt mit dir durch.", "djP5": "Halt deine Szene <b style=\"color:var(--foam)\">einfach: deine Kamera/dein Set füllt den Bildschirm.<\/b> Keine eingebrannten Banner oder QR-Bilder — die Grafiken des Senders (das Lineup des Abends, der Trinkgeld-QR, Live-Spenden-Popups) liegen oben drauf, über einen einzigen Browser-Source-Link, den wir dir geben.", "djDiv12": "Technik-Check, Pegel und der Stream-Key werden alle <b>mit<\/b> dir geklärt, bevor du auf Sendung gehst. Kein Rätselraten, kein Kaltstart.", "djH24": "So werden die sats aufgeteilt", "djP6": "Wenn du live bist, wird das Trinkgeld der Hörer zwischen dir und dem Sender geteilt. Hier steht genau, wie — keine mysteriöse Mathematik.", "djDiv13": "<span class=\"pill on\">Jetzt<\/span><span class=\"nm\">Wiederaufbau-Satz<\/span>", "djAttr1": "Radio 75 Prozent, du 25 Prozent", "djDiv14": "Das Studio ist mitten in der Reparatur — Hauptlautsprecher durchgebrannt, Technik halb zerlegt. Der größere frühe Anteil ist die Bilgepumpe, die das Schiff wieder seetüchtig macht.", "djDiv15": "<span class=\"pill\">Danach<\/span><span class=\"nm\">Wieder flott<\/span>", "djAttr2": "Radio 69 Prozent, du 31 Prozent", "djDiv16": "Sobald das Wichtigste wieder läuft, verschiebt sich die Aufteilung zu dir hin.", "djDiv17": "<span class=\"pill\">In Fahrt<\/span><span class=\"nm\">Fester Satz<\/span>", "djAttr3": "Radio 60 Prozent, du 40 Prozent", "djDiv18": "Der Satz für ein Schiff in Schuss, sobald wir wieder flott sind — dein Anteil für die lange Fahrt.", "djDiv19": "<span class=\"pill\">Endziel<\/span><span class=\"nm\">Der Pareto-Flip<\/span>", "djAttr4": "Radio 21 Prozent, du 79 Prozent", "djDiv20": "Wenn der Sender professionell wird — ein echter FM/AM-Sender, der still den Herzschlag des Bitcoin-Netzwerks mitträgt —, kippt die Leiter: 21% lassen das Licht brennen, 79% an die DJs. Genau darum geht es beim ganzen Aufstieg. (Die ganze Geschichte steht im <a href=\"/manifesto\">Manifest<\/a>.)", "djDiv21": "<span><i class=\"sw r\"><\/i> Anteil des Senders<\/span><span><i class=\"sw y\"><\/i> dein Anteil<\/span>", "djSpan1": "Ganz ehrlich", "djP7": "Unser Schiff, vor Kurzem auf den Namen <span class=\"shipname\">„The Dread Node“<\/span> getauft, wurde in den letzten Jahren von ein paar zusammengewürfelten Plebs bemannt, echte Noderunners, allesamt! Gerade aber nimmt es Wasser auf — Hauptlautsprecher durchgebrannt, Studio halb zerlegt. Die gute Nachricht: Wir machen einfach weiter! Der größere frühe Anteil ist keine Haussteuer, sondern eine Bilgepumpe, die uns hilft, uns aus dem Wrack der ersten Version dieses Projekts wieder hochzuarbeiten. Er <em>sinkt<\/em> Stufe für Stufe zu deinen Gunsten, während wir wieder flott werden, und der eigentliche Lebensunterhalt des Senders soll mit der Zeit aus dem Musikkatalog kommen — nicht vom Abschöpfen bei Live-Künstlern, und auch nicht bei Musikern allgemein! Das Ziel ist, dass alle in Fahrt kommen, nicht nur der Kapitän.", "djDiv22": "<span class=\"tick\">›<\/span><span>Während einer Live-Session <b>sammeln sich die Spenden in einem Topf.<\/b> Am Ende der Session wird der Topf abgerechnet: Der DJ-Anteil wird unter dem Lineup des Abends <b>gleichmäßig aufgeteilt<\/b> und automatisch ausgezahlt, in <b>ganzen sats<\/b> — übrige Bruchteile gehen transparent in die Wiederaufbaukasse des Senders.<\/span>", "djDiv23": "<span class=\"tick\">›<\/span><span>Die Auszahlung läuft <b>automatisch<\/b> — keine Rechnungen schreiben, niemandem hinterherlaufen. Du willst extra Trinkgeld nur für dich? Teil deine eigene Adresse mit deinen Fans — das läuft außerhalb des Pools und gehört ganz dir.<\/span>", "djDiv24": "<span class=\"tick\">›<\/span><span><b>Jukebox-Wünsche sind ein eigener Topf<\/b> — die bezahlen die Künstler (21% Sender / 79% die OGs) und haben nichts mit Live-Trinkgeld zu tun.<\/span>", "djH25": "Kleingedrucktes & FAQ", "djSummary1": "Wann werde ich eigentlich bezahlt?", "djDiv25": "Am Ende der Session, automatisch. Spenden sammeln sich, während das Lineup spielt; wenn die Session endet, wird der Topf abgerechnet, und dein Anteil landet in einer einzigen gebührenfreien Zahlung in deiner Sender-Wallet. Abheben kannst du, wann du willst. Das ist Value-for-Value, kein Gehalt: Kein Trinkgeld heißt, es gibt nichts zu teilen.", "djSummary2": "Seht ihr jemals meine Keys oder mein Passwort?", "djDiv26": "Nein. Deine Wallet gehört dir. Der Sender braucht nur deine öffentliche Lightning-Adresse, um deinen Anteil am Trinkgeld weiterzuleiten — niemals etwas, womit man deine sats ausgeben könnte.", "djSummary3": "Was zählt als „mein Set“?", "djDiv27": "Das Zeitfenster, für das du gebucht und live auf Sendung bist. Der Sender schaltet deine Aufteilung ein, wenn du anfängst, und aus, wenn du fertig bist.", "djSummary4": "Kann sich der Prozentsatz zu meinem Nachteil ändern?", "djDiv28": "Nur zu deinen Gunsten. Der Anteil des Senders <em>sinkt<\/em>, während das Studio heilt, so wie auf der Leiter oben. Wie hoch der aktuelle Satz auch ist, er steht immer genau hier.", "djSummary5": "Brauche ich Telegram?", "djDiv29": "Ja, vorerst — dort wird dein Slot bestätigt und dort stimmt sich die Crew ab. Ein kostenloser Account mit festgelegtem @Benutzernamen reicht (das Slot-Formular zeigt dir, wie), plus der Beitritt zu <b>t.me/noderunnersradio<\/b> — und wenn du beitrittst, beantworte die Bist-du-ein-Mensch-Prüfung des Türsteher-Bots, sonst fliegst du raus. Nostr ist auch willkommen, aber optional.", "djSummary6": "Ich bin kein Technikfreak — wird das schwer?", "djDiv30": "Nein. Die Wallet anzulegen ist eine Seite und ein Name. Das Live-Gehen richten wir persönlich mit dir ein. Wenn du OBS bedienen kannst, kannst du hier auflegen.", "djDiv31": "Gezeichnet, aus internationalen Gewässern — <b>Noderunners Radio<\/b>", "topMenuManifesto": "Manifest", "playBadgeOffline": "offline", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Anmelden", "topSiteMenu": "Hauptmenü", "langLabel": "Sprache", "topMenuProgress": "Fortschritt", "topMenuDjGuide": "Gast-DJ-Guide", "englishCounts": "Aus dem Englischen übersetzt. Bei Abweichungen gilt der englische Text.", "topCoords": "sendet aus internationalen Gewässern", "playBadgeLive": "live", "topSocialLinks": "Social-Media-Links", "topMenuHome": "Start"},
+      "fr": {"djTitle": "The Dread Node — Guide du DJ invité · Noderunners Radio", "djDiv1": "Noderunners Radio · Manuel de l’équipage", "djH11": "Guide du DJ invité", "djP1": "Montez à bord, branchez-vous et touchez votre juste part des sats — le guide en langage simple pour mixer un set en direct à bord de <span class=\"shipname\">The Dread Node<\/span>.", "djDiv2": "— <span class=\"shipname\">The Dread Node<\/span> · on émet depuis les eaux internationales —", "djDiv3": "\n    <span class=\"ico\" aria-hidden=\"true\">⚓<\/span>\n    <span class=\"m\"><b>Gréement tout neuf — en service, mais jeune.<\/b> Tout ce qui est ici fonctionne et a été testé avec de vrais sats, mais nous construisons activement : attendez-vous à quelques aspérités, et les chiffres ci-dessous peuvent encore bouger pendant la reconstruction du navire.<\/span>\n  ", "djP2": "Voici ce que vous apporte le rôle de DJ invité sur Noderunners :", "djDiv4": "<span class=\"tick\">◆<\/span><span><b>Votre propre versement Lightning<\/b> — un wallet et une adresse Lightning rien qu’à vous.<\/span>", "djDiv5": "<span class=\"tick\">◆<\/span><span><b>Une part des dons en direct<\/b> — pendant que vous êtes à l’antenne, une tranche de chaque don des auditeurs part directement vers ce wallet, automatiquement.<\/span>", "djDiv6": "<span class=\"tick\">◆<\/span><span><b>Un créneau au programme<\/b> — et une couchette dans l’équipage.<\/span>", "djH21": "Obtenez votre wallet de versement", "djP3": "C’est là que vos sats arriveront. Ça prend environ une minute — pas de banque, pas de formulaire d’inscription, pas de pièce d’identité.", "djDiv7": "<span>Créez votre wallet Lightning<\/span><span>~1 min<\/span>", "djLi1": "<span class=\"s-t\">Allez sur <a href=\"/register\"><span class=\"mono\">noderunnersradio.com/register<\/span><\/a><\/span><span class=\"s-d\">Depuis le navigateur de n’importe quel téléphone ou ordinateur. Aucun wallet n’est nécessaire au préalable — pas d’e-mail, pas de KYC, rien.<\/span>", "djLi2": "<span class=\"s-t\">Choisissez votre nom de DJ + une phrase secrète<\/span><span class=\"s-d\">Le nom sous lequel vos auditeurs vous connaissent — <b>gravé dans le marbre<\/b>, un DJ = un nom. La phrase secrète (12 caractères minimum ; 4 mots pris au hasard, c’est parfait) vous sert à vous connecter. Vous recevez aussi un <b>code de récupération<\/b> à usage unique — notez-le dans un endroit sûr ; c’est votre moyen de revenir à bord si la phrase secrète passe un jour par-dessus bord.<\/span>", "djLi3": "<span class=\"s-t\">La station crée votre wallet<\/span><span class=\"s-d\">Vous recevez instantanément un wallet Lightning à la station <em>et<\/em> une adresse Lightning (votre propre <span class=\"mono\">vous@…<\/span>, qui peut recevoir des sats de n’importe où).<\/span>", "djLi4": "<span class=\"s-t\">Connectez-vous sur <a href=\"/login\"><span class=\"mono\">noderunnersradio.com/login<\/span><\/a> — vos quartiers<\/span><span class=\"s-d\">Voyez les sats que vous avez gagnés, ouvrez votre wallet de la station, téléversez &amp; recadrez votre avatar, écrivez votre présentation — et vous obtenez votre propre page sur <span class=\"mono\">noderunnersradio.com/VotreNom<\/span>.<\/span>", "djLi5": "<span class=\"s-t\">Le meilleur choix : définissez VOTRE PROPRE adresse de versement<\/span><span class=\"s-d\">Vous avez votre propre wallet (Wallet of Satoshi, Phoenix, votre propre nœud…) ? Collez son adresse Lightning dans vos quartiers, et les versements de session filent directement vers <b>vous<\/b> — sans jamais faire escale à la station. La station n’est pas une banque ; l’auto-garde (self-custody), toujours.<\/span>", "djDiv8": "<b>Nous ne vous demanderons jamais<\/b> le mot de passe de votre wallet, les mots de votre seed ni votre clé admin — pas une seule fois, jamais. Si quelqu’un qui se présente comme la station vous les demande, ce n’est pas nous.", "djH22": "Réservez votre créneau", "djDiv9": "<span>Demandez une heure de studio<\/span>", "djLi6": "<span class=\"s-t\">Il vous faut un compte Telegram pour cette étape<\/span><span class=\"s-d\">C’est ainsi que nous confirmons votre créneau, et c’est là que l’équipage discute. Gratuit, et ça prend 2 minutes : <a href=\"https://telegram.org/apps\" target=\"_blank\" rel=\"noopener\">installez Telegram ici<\/a>, puis définissez votre <b>@username<\/b> (nom d’utilisateur) — iPhone : Réglages → touchez votre profil → Nom d’utilisateur · Android : menu ☰ → Paramètres → touchez votre nom → Nom d’utilisateur. C’est ce @username qui va dans le formulaire.<\/span>", "djLi7": "<span class=\"s-t\">Allez sur <a href=\"/dj/request-slot\"><span class=\"mono\">noderunnersradio.com/dj/request-slot<\/span><\/a><\/span><span class=\"s-d\">Directement depuis la même page DJ.<\/span>", "djLi8": "<span class=\"s-t\">Choisissez une date &amp; une heure de studio<\/span><span class=\"s-d\">Le formulaire affiche votre heure locale juste à côté de CET et UTC : aucun calcul d’horloge.<\/span>", "djLi9": "<span class=\"s-t\">Envoyez la demande, puis surveillez Telegram<\/span><span class=\"s-d\">Vous recevrez un message dans <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> dès que votre créneau sera approuvé.<\/span>", "djDiv10": "<b>Rejoindre le groupe de l’équipage n’est pas facultatif<\/b> &mdash; pas de présence dans le chat, pas de créneau. Telegram ne nous permet pas de vous écrire en premier : vous venez donc à nous une fois, et tout fonctionne ensuite. <b>Rejoignez-le ici<\/b> : <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> — c’est là que votre créneau est confirmé et que la clé de stream vous est remise. ⚠ Quand vous rejoignez le groupe, le bot videur (<b>Rose<\/b>) vous demandera de <b>prouver que vous êtes humain<\/b> — touchez le bouton qu’elle vous montre, sinon elle vous renverra sur le quai. Ensuite, dites bonjour, pour que nous puissions mettre une voix sur votre nom.", "djH23": "Passez à l’antenne", "djDiv11": "<span>Envoyez votre flux<\/span>", "djP4": "La station diffuse la vidéo via <b style=\"color:var(--foam)\">Owncast<\/b> (vous nous envoyez votre flux depuis <b style=\"color:var(--foam)\">OBS<\/b>). Quand votre créneau est approuvé, nous vous remettons une <b style=\"color:var(--foam)\">clé de stream privée<\/b> et les réglages OBS exacts — en tête-à-tête : cette partie, nous la faisons directement avec vous.", "djP5": "Gardez une scène <b style=\"color:var(--foam)\">simple : votre caméra/votre set qui remplit l’écran.<\/b> Pas de bannières ni d’images QR incrustées — les visuels de la station (l’affiche du soir, le QR des dons, les popups de dons en direct) se superposent par-dessus grâce à un seul lien de source Browser que nous vous donnons.", "djDiv12": "Vérification du matériel, niveaux et clé de stream : tout est réglé <b>avec<\/b> vous avant votre passage. Pas de devinettes, pas de passage à l’antenne à froid.", "djH24": "Comment les sats sont partagés", "djP6": "Quand vous êtes en direct, les dons des auditeurs sont partagés entre vous et la station. Voici exactement comment — pas de calculs mystérieux.", "djDiv13": "<span class=\"pill on\">Maintenant<\/span><span class=\"nm\">Taux de reconstruction<\/span>", "djAttr1": "Radio 75 pour cent, vous 25 pour cent", "djDiv14": "Le studio est en pleine réparation — enceintes principales grillées, matériel à moitié démonté. La part plus élevée du début, c’est la pompe de cale qui remet le navire en état de naviguer.", "djDiv15": "<span class=\"pill\">Ensuite<\/span><span class=\"nm\">Renflouage<\/span>", "djAttr2": "Radio 69 pour cent, vous 31 pour cent", "djDiv16": "À mesure que l’essentiel revient en service, le partage se déplace vers vous.", "djDiv17": "<span class=\"pill\">En croisière<\/span><span class=\"nm\">Taux stable<\/span>", "djAttr3": "Radio 60 pour cent, vous 40 pour cent", "djDiv18": "Le taux du navire bien paré, une fois renfloué — votre part au long cours.", "djDiv19": "<span class=\"pill\">À terme<\/span><span class=\"nm\">La bascule de Pareto<\/span>", "djAttr4": "Radio 21 pour cent, vous 79 pour cent", "djDiv20": "Quand la station passera pro — un vrai diffuseur FM/AM, qui porte discrètement le battement de cœur du réseau Bitcoin — l’échelle basculera : 21 % gardent la lumière allumée, 79 % vont aux DJ. C’est tout le sens de la montée. (Toute l’histoire dans le <a href=\"/manifesto\">manifeste<\/a>.)", "djDiv21": "<span><i class=\"sw r\"><\/i> part de la station<\/span><span><i class=\"sw y\"><\/i> votre part<\/span>", "djSpan1": "Cartes sur table", "djP7": "Notre navire, récemment baptisé <span class=\"shipname\">« The Dread Node »<\/span>, a été mené ces dernières années par une poignée de plebs hétéroclites, de vrais Noderunners, tous autant qu’ils sont ! Mais en ce moment, il prend l’eau — enceintes principales grillées, studio à moitié démonté. La bonne nouvelle : on continue, coûte que coûte ! La part plus élevée du début n’est pas une taxe maison, c’est une pompe de cale qui va nous aider à repartir de l’épave de la première itération de ce projet. Elle <em>diminue<\/em> en votre faveur à mesure que nous renflouons, et le vrai gagne-pain de la station doit venir, avec le temps, du catalogue musical — pas de ponctions sur les artistes en direct, ni sur les musiciens en général ! Le but, c’est que tout le monde vogue, pas seulement le capitaine.", "djDiv22": "<span class=\"tick\">›<\/span><span>Pendant une session en direct, les dons <b>s’accumulent dans une seule cagnotte.<\/b> À la fin de la session, la cagnotte est réglée : la part des DJ est <b>partagée à parts égales<\/b> entre les DJ à l’affiche ce soir-là et versée automatiquement, en <b>sats entiers<\/b> — les fractions restantes vont à la tirelire de reconstruction de la station, en toute transparence.<\/span>", "djDiv23": "<span class=\"tick\">›<\/span><span>Le versement est <b>automatique<\/b> — pas de facture à émettre, personne à relancer. Vous voulez des dons rien que pour vous ? Partagez votre propre adresse avec vos fans — c’est en dehors du pot commun, et c’est tout pour vous.<\/span>", "djDiv24": "<span class=\"tick\">›<\/span><span><b>Les demandes de morceaux au jukebox sont une cagnotte à part<\/b> — elles paient les artistes (21 % station / 79 % les OG), rien à voir avec les dons en direct.<\/span>", "djH25": "Petits caractères et FAQ", "djSummary1": "Quand est-ce que je suis payé, concrètement ?", "djDiv25": "À la fin de la session, automatiquement. Les dons s’accumulent pendant que les DJ à l’affiche jouent ; à la clôture de la session, la cagnotte est réglée et votre part arrive dans votre wallet de la station en un seul paiement sans frais. Retirez-la quand vous voulez. C’est de la valeur pour valeur, pas un salaire : pas de dons, rien à partager.", "djSummary2": "Voyez-vous jamais mes clés ou mon mot de passe ?", "djDiv26": "Non. Votre wallet est à vous. La station n’a besoin que de votre adresse Lightning publique pour acheminer votre part des dons — jamais de quoi que ce soit qui permettrait de dépenser vos sats.", "djSummary3": "Qu’est-ce qui compte comme « mon set » ?", "djDiv27": "Le créneau réservé pendant lequel vous êtes à l’antenne. La station active votre partage quand vous commencez et le coupe quand vous terminez.", "djSummary4": "Le pourcentage peut-il changer à mes dépens ?", "djDiv28": "Seulement en votre faveur. Il <em>diminue<\/em> pour la station à mesure que le studio se répare, en suivant l’échelle ci-dessus. Quel que soit le taux actuel, il sera toujours affiché ici même.", "djSummary5": "Ai-je besoin de Telegram ?", "djDiv29": "Oui, pour l’instant — c’est là que votre créneau est confirmé et que l’équipage se coordonne. Il suffit d’un compte gratuit avec un @username défini (le formulaire de créneau vous montre comment) et de rejoindre <b>t.me/noderunnersradio<\/b> — et quand vous rejoignez le groupe, répondez au test « êtes-vous humain ? » du bot videur, sinon vous serez expulsé. Nostr est aussi le bienvenu, mais facultatif.", "djSummary6": "Je ne suis pas très technique — est-ce que ça va être difficile ?", "djDiv30": "Non. Créer le wallet, c’est une page et un nom. Le passage à l’antenne, nous le préparons avec vous personnellement. Si vous savez utiliser OBS, vous pouvez être DJ ici.", "djDiv31": "Signé depuis les eaux internationales — <b>Noderunners Radio<\/b>", "topMenuManifesto": "Manifeste", "playBadgeOffline": "hors ligne", "topMenuRoadmap": "Roadmap", "topMenuLogin": "Connexion", "topSiteMenu": "Menu du site", "langLabel": "Langue", "topMenuProgress": "Avancement", "topMenuDjGuide": "Guide DJ invité", "englishCounts": "Traduit de l’anglais. En cas de différence, le texte anglais fait foi.", "topCoords": "on émet depuis les eaux internationales", "playBadgeLive": "direct", "topSocialLinks": "Réseaux sociaux", "topMenuHome": "Accueil"},
+      "es": {"djTitle": "The Dread Node — Manual del DJ invitado · Noderunners Radio", "djDiv1": "Noderunners Radio · Manual de la tripulación", "djH11": "Manual del DJ invitado", "djP1": "Sube a bordo, conéctate y llévate tu parte justa de los sats — la guía en lenguaje sencillo para pinchar un set en directo a bordo de <span class=\"shipname\">The Dread Node<\/span>.", "djDiv2": "— <span class=\"shipname\">The Dread Node<\/span> · emitiendo desde aguas internacionales —", "djDiv3": "\n    <span class=\"ico\" aria-hidden=\"true\">⚓<\/span>\n    <span class=\"m\"><b>Aparejo nuevo — operativo, pero joven.<\/b> Todo lo de aquí funciona y se ha probado con sats reales, pero seguimos construyendo: cuenta con algunas asperezas, y las cifras de abajo todavía pueden cambiar mientras se reconstruye el barco.<\/span>\n  ", "djP2": "Esto es lo que te llevas por ser DJ invitado en Noderunners:", "djDiv4": "<span class=\"tick\">◆<\/span><span><b>Tu propio cobro por Lightning<\/b> — una wallet y una Lightning Address solo tuyas.<\/span>", "djDiv5": "<span class=\"tick\">◆<\/span><span><b>Una parte en directo de las propinas<\/b> — mientras estás en el aire, una porción de cada donación de los oyentes va directa a esa wallet, automáticamente.<\/span>", "djDiv6": "<span class=\"tick\">◆<\/span><span><b>Un turno en la programación<\/b> — y una litera en la tripulación.<\/span>", "djH21": "Consigue tu wallet de cobro", "djP3": "Aquí es donde caerán tus sats. Tarda más o menos un minuto — sin banco, sin formularios de registro, sin documento de identidad.", "djDiv7": "<span>Configura tu wallet Lightning<\/span><span>~1 min<\/span>", "djLi1": "<span class=\"s-t\">Ve a <a href=\"/register\"><span class=\"mono\">noderunnersradio.com/register<\/span><\/a><\/span><span class=\"s-d\">Desde el navegador de cualquier teléfono o portátil. No hace falta tener una wallet de antemano — ni email, ni KYC, nada.<\/span>", "djLi2": "<span class=\"s-t\">Elige tu nombre de DJ + una frase de contraseña<\/span><span class=\"s-d\">El nombre por el que te conocen tus oyentes — <b>grabado en piedra<\/b>, un DJ = un nombre. La frase de contraseña (mínimo 12 caracteres; 4 palabras al azar funcionan de maravilla) es tu acceso. También recibes un <b>código de recuperación<\/b> de un solo uso — apúntalo en un lugar seguro; es tu forma de volver a entrar si la frase de contraseña se cae por la borda.<\/span>", "djLi3": "<span class=\"s-t\">La emisora crea tu wallet<\/span><span class=\"s-d\">Recibes al instante una wallet Lightning en la emisora <em>y<\/em> una Lightning Address (tu propia <span class=\"mono\">tu@…<\/span> que puede recibir sats desde cualquier sitio).<\/span>", "djLi4": "<span class=\"s-t\">Entra en <a href=\"/login\"><span class=\"mono\">noderunnersradio.com/login<\/span><\/a> — tu camarote<\/span><span class=\"s-d\">Consulta los sats que has ganado, abre tu wallet de la emisora, sube &amp; recorta tu avatar, escribe tu presentación — y tienes tu propia página en <span class=\"mono\">noderunnersradio.com/TuNombre<\/span>.<\/span>", "djLi5": "<span class=\"s-t\">Lo mejor: pon tu PROPIA dirección de cobro<\/span><span class=\"s-d\">¿Tienes tu propia wallet (Wallet of Satoshi, Phoenix, tu propio nodo…)? Pega su Lightning Address en tu camarote y los pagos de las sesiones vuelan directos a <b>ti<\/b> — sin quedarse nunca aparcados en la emisora. La emisora no es un banco; autocustodia, siempre.<\/span>", "djDiv8": "<b>Nunca te pediremos<\/b> la contraseña de tu wallet, tus palabras semilla ni tu clave de administrador — ni una sola vez, nunca jamás. Si alguien que dice ser la emisora te las pide, no somos nosotros.", "djH22": "Reserva tu turno", "djDiv9": "<span>Pide una hora de estudio<\/span>", "djLi6": "<span class=\"s-t\">Para esta parte necesitarás una cuenta de Telegram<\/span><span class=\"s-d\">Por ahí confirmamos tu turno y ahí habla la tripulación. Gratis, tarda 2 minutos: <a href=\"https://telegram.org/apps\" target=\"_blank\" rel=\"noopener\">consigue Telegram aquí<\/a> y luego elige tu <b>@alias<\/b> (nombre de usuario) — iPhone: Ajustes → toca tu perfil → Alias · Android: menú ☰ → Ajustes → toca tu nombre → Alias. Ese @alias va en el formulario.<\/span>", "djLi7": "<span class=\"s-t\">Ve a <a href=\"/dj/request-slot\"><span class=\"mono\">noderunnersradio.com/dj/request-slot<\/span><\/a><\/span><span class=\"s-d\">Directamente desde la misma página de DJ.<\/span>", "djLi8": "<span class=\"s-t\">Elige una fecha &amp; una hora de estudio<\/span><span class=\"s-d\">Muestra tu hora local justo al lado de la CET y la UTC, así que nada de cuentas con el reloj.<\/span>", "djLi9": "<span class=\"s-t\">Envíalo y vigila Telegram<\/span><span class=\"s-d\">Recibirás un aviso en <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> en cuanto aprueben tu turno.<\/span>", "djDiv10": "<b>Unirte al grupo de la tripulación no es opcional<\/b> &mdash; sin presencia en el chat, no hay turno. Telegram no nos deja escribirte primero, así que vienes tú a nosotros una vez y a partir de ahí todo funciona. <b>Únete aquí<\/b>: <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> — ahí se confirma tu turno y se te entrega la clave de stream. ⚠ Al unirte, el bot portero (<b>Rose<\/b>) te pedirá que <b>demuestres que eres humano<\/b> — pulsa el botón que te muestra o te echará de vuelta al muelle. Luego saluda, para que podamos ponerle voz al nombre.", "djH23": "Sal en directo", "djDiv11": "<span>Envía tu señal<\/span>", "djP4": "La emisora emite vídeo a través de <b style=\"color:var(--foam)\">Owncast<\/b> (tú nos envías tu señal desde <b style=\"color:var(--foam)\">OBS<\/b>). Cuando se apruebe tu turno, te damos una <b style=\"color:var(--foam)\">clave de stream privada<\/b> y los ajustes exactos de OBS — uno a uno, así que esta parte la repasamos contigo directamente.", "djP5": "Mantén tu escena <b style=\"color:var(--foam)\">sencilla: tu cámara/set llenando la pantalla.<\/b> Nada de banners incrustados ni imágenes QR — los gráficos de la emisora (el cartel de esta noche, el QR de propinas, los avisos de donaciones en directo) van por encima a través de un único enlace de fuente de navegador que te damos.", "djDiv12": "La revisión del material, los niveles y la clave de stream se dejan listos <b>contigo<\/b> antes de salir. Sin conjeturas, sin salir en directo en frío.", "djH24": "Cómo se reparten los sats", "djP6": "Cuando estás en directo, las propinas de los oyentes se reparten entre tú y la emisora. Así es exactamente — sin cuentas misteriosas.", "djDiv13": "<span class=\"pill on\">Ahora<\/span><span class=\"nm\">Reparto de reconstrucción<\/span>", "djAttr1": "Radio 75 por ciento, tú 25 por ciento", "djDiv14": "El estudio está a medio reparar — altavoces principales reventados, material medio desmontado. La parte más grande del principio es la bomba de achique que vuelve a poner el barco en condiciones de navegar.", "djDiv15": "<span class=\"pill\">Siguiente<\/span><span class=\"nm\">Reflotando<\/span>", "djAttr2": "Radio 69 por ciento, tú 31 por ciento", "djDiv16": "A medida que lo esencial vuelve a funcionar, el reparto da un paso hacia ti.", "djDiv17": "<span class=\"pill\">A toda vela<\/span><span class=\"nm\">Reparto estable<\/span>", "djAttr3": "Radio 60 por ciento, tú 40 por ciento", "djDiv18": "El reparto con el barco en orden, una vez reflotados — tu parte para la travesía larga.", "djDiv19": "<span class=\"pill\">Destino<\/span><span class=\"nm\">El giro de Pareto<\/span>", "djAttr4": "Radio 21 por ciento, tú 79 por ciento", "djDiv20": "Cuando la emisora se haga profesional — una auténtica emisora de FM/AM, que lleve discretamente el latido de la red Bitcoin — la escalera se invierte: el 21% mantiene las luces encendidas, el 79% va a los DJs. Ese es todo el sentido de la subida. (La historia completa, en el <a href=\"/manifesto\">manifiesto<\/a>.)", "djDiv21": "<span><i class=\"sw r\"><\/i> parte de la emisora<\/span><span><i class=\"sw y\"><\/i> tu parte<\/span>", "djSpan1": "Sin rodeos contigo", "djP7": "Nuestro barco, bautizado hace poco como <span class=\"shipname\">\"The Dread Node\"<\/span>, ha tenido estos últimos años una tripulación de unos cuantos plebs variopintos, ¡auténticos Noderunners, todos y cada uno! Pero ahora mismo está haciendo agua — altavoces principales reventados, estudio medio desmontado. La buena noticia: ¡seguimos adelante sin rendirnos! La parte más grande del principio no es un impuesto de la casa, es una bomba de achique que nos ayudará a arrancar desde los restos de la primera versión de este proyecto. Va <em>bajando<\/em> a tu favor a medida que reflotamos, y el verdadero sustento de la emisora debe venir, con el tiempo, del catálogo musical — ¡no de quedarse una tajada de los artistas en directo, ni de los músicos en general! El objetivo es que todos vayamos a toda vela, no solo el capitán.", "djDiv22": "<span class=\"tick\">›<\/span><span>Durante una sesión en directo, las donaciones <b>se juntan en un solo bote.<\/b> Al final de la sesión se liquida el bote: la parte de los DJs se <b>reparte a partes iguales<\/b> entre los DJs del cartel de esa noche y se paga automáticamente, en <b>sats enteros<\/b> — las fracciones sobrantes van a la hucha de reconstrucción de la emisora, de forma transparente.<\/span>", "djDiv23": "<span class=\"tick\">›<\/span><span>El pago es <b>automático<\/b> — sin facturar, sin perseguir a nadie. ¿Quieres propinas extra solo para ti? Comparte tu propia dirección con tus fans — eso queda fuera del bote y es todo tuyo.<\/span>", "djDiv24": "<span class=\"tick\">›<\/span><span><b>Las peticiones de temas en la jukebox son un bote aparte<\/b> — esas pagan a los artistas (21% emisora / 79% los OG), nada que ver con las propinas en directo.<\/span>", "djH25": "Letra pequeña y preguntas frecuentes", "djSummary1": "¿Cuándo cobro de verdad?", "djDiv25": "Al final de la sesión, automáticamente. Las donaciones se juntan mientras pinchan los DJs del cartel; cuando se cierra la sesión, el bote se liquida y tu parte llega a tu wallet de la emisora en un único pago sin comisiones. Retira tus sats cuando quieras. Esto es valor por valor, no un salario: sin propinas no hay nada que repartir.", "djSummary2": "¿La emisora ve alguna vez mis claves o mi contraseña?", "djDiv26": "No. Tu wallet es tuya. La emisora solo necesita tu Lightning Address pública para enviarte tu parte de las propinas — nunca nada que pueda gastar tus sats.", "djSummary3": "¿Qué cuenta como «mi set»?", "djDiv27": "La franja que tienes reservada y en la que estás en el aire. La emisora activa tu reparto cuando empiezas y lo desactiva cuando terminas.", "djSummary4": "¿Me pueden cambiar el porcentaje?", "djDiv28": "Solo a tu favor. <em>Baja<\/em> para la emisora a medida que el estudio se recupera, siguiendo la escalera de arriba. Sea cual sea el reparto actual, siempre estará publicado aquí mismo.", "djSummary5": "¿Necesito Telegram?", "djDiv29": "Sí, por ahora — es donde se confirma tu turno y donde se coordina la tripulación. Basta con una cuenta gratuita con un @alias configurado (el formulario del turno te enseña cómo), y unirte a <b>t.me/noderunnersradio<\/b> — y cuando entres, responde a la comprobación de humano del bot portero o te echará. Nostr también es bienvenido, pero opcional.", "djSummary6": "No sé mucho de tecnología — ¿va a ser difícil?", "djDiv30": "No. Crear la wallet es una página y un nombre. La puesta en directo la preparamos contigo en persona. Si sabes manejar OBS, puedes pinchar aquí.", "djDiv31": "Firmado desde aguas internacionales — <b>Noderunners Radio<\/b>", "topMenuManifesto": "Manifiesto", "playBadgeOffline": "desconectado", "topMenuRoadmap": "Hoja de ruta", "topMenuLogin": "Entrar", "topSiteMenu": "Menú del sitio", "langLabel": "Idioma", "topMenuProgress": "Progreso", "topMenuDjGuide": "Guía para DJs", "englishCounts": "Traducido del inglés. Si algo difiere, prevalece el texto en inglés.", "topCoords": "emitiendo desde aguas internacionales", "playBadgeLive": "directo", "topSocialLinks": "Redes sociales", "topMenuHome": "Inicio"},
+      "pt": {"djTitle": "The Dread Node — Manual do DJ convidado · Noderunners Radio", "djDiv1": "Noderunners Radio · Manual da tripulação", "djH11": "Manual do DJ convidado", "djP1": "Suba a bordo, ligue-se e receba a sua parte justa dos sats — o guia em linguagem simples para tocar um set ao vivo a bordo do <span class=\"shipname\">The Dread Node<\/span>.", "djDiv2": "— <span class=\"shipname\">The Dread Node<\/span> · a emitir de águas internacionais —", "djDiv3": "\n    <span class=\"ico\" aria-hidden=\"true\">⚓<\/span>\n    <span class=\"m\"><b>Cordame novo — já a funcionar, mas jovem.<\/b> Tudo aqui funciona e foi testado com sats reais, mas estamos a construir ativamente: conte com arestas por limar, e os números abaixo ainda podem mudar enquanto o navio é reconstruído.<\/span>\n  ", "djP2": "Eis o que ganha por ser DJ convidado na Noderunners:", "djDiv4": "<span class=\"tick\">◆<\/span><span><b>O seu próprio pagamento Lightning<\/b> — uma carteira e um Lightning Address só seus.<\/span>", "djDiv5": "<span class=\"tick\">◆<\/span><span><b>Uma parte das gorjetas em direto<\/b> — enquanto estiver no ar, uma fatia de cada donativo dos ouvintes vai diretamente para essa carteira, automaticamente.<\/span>", "djDiv6": "<span class=\"tick\">◆<\/span><span><b>Um lugar na programação<\/b> — e um beliche na tripulação.<\/span>", "djH21": "Obtenha a sua carteira de pagamentos", "djP3": "É aqui que os seus sats vão aterrar. Demora cerca de um minuto — sem banco, sem formulários de inscrição, sem identificação.", "djDiv7": "<span>Configure a sua carteira Lightning<\/span><span>~1 min<\/span>", "djLi1": "<span class=\"s-t\">Vá a <a href=\"/register\"><span class=\"mono\">noderunnersradio.com/register<\/span><\/a><\/span><span class=\"s-d\">Em qualquer navegador de telemóvel ou portátil. Não precisa de carteira antes — sem email, sem KYC, nada.<\/span>", "djLi2": "<span class=\"s-t\">Escolha o seu nome de DJ + uma frase-passe<\/span><span class=\"s-d\">O nome pelo qual os seus ouvintes o conhecem — <b>gravado em pedra<\/b>, um DJ = um nome. A frase-passe (mín. 12 caracteres, 4 palavras aleatórias funcionam muito bem) é o seu acesso. Também recebe um <b>código de recuperação<\/b> de uso único — anote-o num sítio seguro; é a sua forma de voltar a entrar se a frase-passe algum dia cair borda fora.<\/span>", "djLi3": "<span class=\"s-t\">A rádio cria a sua carteira<\/span><span class=\"s-d\">Recebe de imediato uma carteira Lightning na rádio <em>e<\/em> um Lightning Address (o seu próprio <span class=\"mono\">you@…<\/span> que pode receber sats de qualquer lado).<\/span>", "djLi4": "<span class=\"s-t\">Entre em <a href=\"/login\"><span class=\"mono\">noderunnersradio.com/login<\/span><\/a> — o seu camarote<\/span><span class=\"s-d\">Veja os sats que ganhou, abra a sua carteira da rádio, carregue &amp; recorte o seu avatar, escreva a sua apresentação — e fica com a sua própria página em <span class=\"mono\">noderunnersradio.com/OSeuNome<\/span>.<\/span>", "djLi5": "<span class=\"s-t\">Melhor opção: defina o SEU PRÓPRIO endereço de pagamento<\/span><span class=\"s-d\">Tem a sua própria carteira (Wallet of Satoshi, Phoenix, o seu próprio node…)? Cole o Lightning Address dela no seu camarote e os pagamentos das sessões voam diretamente para <b>si<\/b> — nunca ficam parados na rádio. A rádio não é um banco; autocustódia, sempre.<\/span>", "djDiv8": "<b>Nunca lhe vamos pedir<\/b> a palavra-passe da sua carteira, as suas palavras-semente (seed words) ou a sua admin key — nem uma única vez, jamais. Se alguém que diga ser da rádio lhas pedir, não somos nós.", "djH22": "Marque o seu horário", "djDiv9": "<span>Peça uma hora de estúdio<\/span>", "djLi6": "<span class=\"s-t\">Vai precisar de uma conta de Telegram para esta parte<\/span><span class=\"s-d\">É assim que confirmamos o seu horário e é onde a tripulação conversa. Grátis, demora 2 minutos: <a href=\"https://telegram.org/apps\" target=\"_blank\" rel=\"noopener\">obtenha o Telegram aqui<\/a>, depois defina o seu <b>@username<\/b> — iPhone: Settings (Configurações) → toque no seu perfil → Username (Nome de usuário) · Android: menu ☰ → Settings (Configurações) → toque no seu nome → Username (Nome de usuário). Esse @username vai no formulário.<\/span>", "djLi7": "<span class=\"s-t\">Vá a <a href=\"/dj/request-slot\"><span class=\"mono\">noderunnersradio.com/dj/request-slot<\/span><\/a><\/span><span class=\"s-d\">Diretamente a partir da mesma página de DJ.<\/span>", "djLi8": "<span class=\"s-t\">Escolha uma data &amp; uma hora de estúdio<\/span><span class=\"s-d\">Mostra a sua hora local mesmo ao lado de CET e UTC, por isso não tem de fazer contas às horas.<\/span>", "djLi9": "<span class=\"s-t\">Envie o pedido e fique atento ao Telegram<\/span><span class=\"s-d\">Vai receber um aviso em <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> quando o seu horário for aprovado.<\/span>", "djDiv10": "<b>Entrar no grupo da tripulação não é opcional<\/b> &mdash; sem presença no chat, não há horário. O Telegram não nos deixa enviar-lhe mensagem primeiro, por isso vem ter connosco uma vez e a partir daí tudo funciona. <b>Entre aqui<\/b>: <a href=\"https://t.me/noderunnersradio\" target=\"_blank\" rel=\"noopener\">t.me/noderunnersradio<\/a> — é aí que o seu horário é confirmado e que a chave de transmissão lhe é entregue. ⚠ Quando entrar, o bot porteiro (<b>Rose<\/b>) vai pedir-lhe que <b>prove que é humano<\/b> — toque no botão que ela lhe mostrar, ou ela manda-o de volta para o cais. Depois diga olá, para podermos associar uma voz ao nome.", "djH23": "Entrar em direto", "djDiv11": "<span>Transmitir<\/span>", "djP4": "A rádio emite vídeo através do <b style=\"color:var(--foam)\">Owncast<\/b> (envia-nos o seu sinal a partir do <b style=\"color:var(--foam)\">OBS<\/b>). Quando o seu horário for aprovado, entregamos-lhe uma <b style=\"color:var(--foam)\">chave de transmissão privada<\/b> e as definições exatas do OBS — um a um, por isso esta parte fazemos consigo diretamente.", "djP5": "Mantenha a sua cena <b style=\"color:var(--foam)\">simples: a sua câmara/set a encher o ecrã.<\/b> Sem faixas ou imagens QR embutidas — os gráficos da rádio (o alinhamento desta noite, o QR de gorjetas, os popups de donativos ao vivo) vão por cima através de um único link de fonte de navegador que lhe damos.", "djDiv12": "A verificação do equipamento, os níveis e a chave de transmissão ficam todos resolvidos <b>consigo<\/b> antes de entrar no ar. Sem adivinhações, sem entrar em direto a frio.", "djH24": "Como se dividem os sats", "djP6": "Quando está em direto, as gorjetas dos ouvintes são partilhadas entre si e a rádio. Eis exatamente como — sem matemática misteriosa.", "djDiv13": "<span class=\"pill on\">Agora<\/span><span class=\"nm\">Taxa de reconstrução<\/span>", "djAttr1": "Rádio 75 por cento, para si 25 por cento", "djDiv14": "O estúdio está a meio da reparação — colunas principais rebentadas, equipamento meio desmontado. A fatia maior do início é a bomba de porão que volta a pôr o navio em condições de navegar.", "djDiv15": "<span class=\"pill\">A seguir<\/span><span class=\"nm\">A reflutuar<\/span>", "djAttr2": "Rádio 69 por cento, para si 31 por cento", "djDiv16": "À medida que o essencial volta a funcionar, a divisão avança na sua direção.", "djDiv17": "<span class=\"pill\">A todo o pano<\/span><span class=\"nm\">Taxa estável<\/span>", "djAttr3": "Rádio 60 por cento, para si 40 por cento", "djDiv18": "A taxa de navio em ordem, depois de voltarmos a flutuar — a sua parte para a longa viagem.", "djDiv19": "<span class=\"pill\">Destino final<\/span><span class=\"nm\">A inversão de Pareto<\/span>", "djAttr4": "Rádio 21 por cento, para si 79 por cento", "djDiv20": "Quando a rádio se profissionalizar — uma verdadeira emissora FM/AM, a transportar discretamente o batimento cardíaco da rede Bitcoin — a escada inverte-se: 21% mantém as luzes acesas, 79% para os DJs. É esse o objetivo da subida toda. (A história completa está no <a href=\"/manifesto\">manifesto<\/a>.)", "djDiv21": "<span><i class=\"sw r\"><\/i> parte da rádio<\/span><span><i class=\"sw y\"><\/i> a sua parte<\/span>", "djSpan1": "Com toda a franqueza", "djP7": "O nosso navio, recentemente batizado <span class=\"shipname\">\"The Dread Node\"<\/span>, tem sido tripulado nestes últimos anos por um bando desalinhado de plebs, verdadeiros Noderunners, todos eles! Mas neste momento está a meter água — colunas principais rebentadas, estúdio meio desmontado. A boa notícia: continuamos a seguir em frente! A fatia maior do início não é um imposto da casa, é uma bomba de porão que nos vai ajudar a arrancar dos destroços da primeira versão deste projeto. Ela <em>desce<\/em> a seu favor à medida que voltamos a flutuar, e o verdadeiro ganha-pão da rádio deverá vir, com o tempo, do catálogo musical — não de ficar com uma fatia dos artistas ao vivo, nem dos músicos em geral! O objetivo é irmos todos de vento em popa, não só o capitão.", "djDiv22": "<span class=\"tick\">›<\/span><span>Durante uma sessão ao vivo, os donativos <b>juntam-se num só pote.<\/b> No fim da sessão, faz-se o acerto de contas do pote: a parte dos DJs é <b>dividida por igual<\/b> pelo alinhamento dessa noite e paga automaticamente, em <b>sats inteiros<\/b> — as frações que sobram vão para o frasco de reconstrução da rádio, de forma transparente.<\/span>", "djDiv23": "<span class=\"tick\">›<\/span><span>O pagamento é <b>automático<\/b> — sem faturas, sem andar atrás de ninguém. Quer gorjetas extra só para si? Partilhe o seu próprio endereço com os seus fãs — isso fica fora do fundo comum e é todo seu.<\/span>", "djDiv24": "<span class=\"tick\">›<\/span><span><b>Os pedidos de faixas na jukebox são um pote à parte<\/b> — esses pagam aos artistas (21% rádio / 79% os OGs), nada a ver com as gorjetas ao vivo.<\/span>", "djH25": "Letra miudinha & FAQ", "djSummary1": "Quando é que recebo, afinal?", "djDiv25": "No fim da sessão, automaticamente. Os donativos acumulam-se enquanto o alinhamento toca; quando a sessão fecha, faz-se o acerto de contas do pote e a sua parte chega à sua carteira da rádio num único pagamento sem taxas. Levante quando quiser. Isto é valor por valor, não um salário: sem gorjetas, não há nada para dividir.", "djSummary2": "Alguma vez veem as minhas chaves ou a minha palavra-passe?", "djDiv26": "Não. A sua carteira é sua. A rádio só precisa do seu Lightning Address público para encaminhar a sua parte das gorjetas — nunca nada que possa gastar os seus sats.", "djSummary3": "O que conta como «o meu set»?", "djDiv27": "O período para o qual está marcado e em que está no ar. A rádio liga a sua divisão quando começa e desliga-a quando termina.", "djSummary4": "A percentagem pode mudar contra mim?", "djDiv28": "Só a seu favor. A parte da rádio <em>desce<\/em> à medida que o estúdio sara, seguindo a escada acima. Seja qual for a taxa atual, vai estar sempre publicada aqui mesmo.", "djSummary5": "Preciso do Telegram?", "djDiv29": "Sim, por agora — é onde o seu horário é confirmado e onde a tripulação se coordena. Basta uma conta gratuita com um @username definido (o formulário do horário mostra como), e entrar em <b>t.me/noderunnersradio<\/b> — e, quando entrar, responda ao teste «é humano?» do bot porteiro, ou vai ser expulso. O Nostr também é bem-vindo, mas é opcional.", "djSummary6": "Não sou técnico — isto vai ser difícil?", "djDiv30": "Não. Criar a carteira é uma página e um nome. A entrada em direto, preparamo-la consigo, pessoalmente. Se consegue usar o OBS, consegue ser DJ aqui.", "djDiv31": "Assinado, a partir de águas internacionais — <b>Noderunners Radio<\/b>", "topMenuManifesto": "Manifesto", "playBadgeOffline": "offline", "topMenuRoadmap": "Roteiro", "topMenuLogin": "Entrar", "topSiteMenu": "Menu do site", "langLabel": "Idioma", "topMenuProgress": "Progresso", "topMenuDjGuide": "Guia para DJs", "englishCounts": "Traduzido do inglês. Se algo for diferente, vale o texto em inglês.", "topCoords": "a emitir de águas internacionais", "playBadgeLive": "direto", "topSocialLinks": "Redes sociais", "topMenuHome": "Início"}
+    };
+    var LANG = 'en', hooks = [];
+    try {
+      var q = new URLSearchParams(location.search).get('lang');
+      var saved = null; try { saved = localStorage.getItem('nrLang'); } catch (e) {}
+      LANG = LANGS.indexOf(q) >= 0 ? q : (LANGS.indexOf(saved) >= 0 ? saved : 'en');
+    } catch (e) {}
+    function T(k) {
+      var d = I18N[LANG] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    // ONE pass with a function replacer: every slot is filled once, from the template only. A value (an
+    // artist, a title, a DJ name) is inserted literally -- a title that itself contains '{title}' or '$&'
+    // is never filled again or read as a pattern. (Slot-by-slot split/join got that wrong; scout B's
+    // equivalence tests caught it on 2026-09-11.)
+    function fill(s, map) {
+      return String(s).replace(/\{([A-Za-z0-9_]+)\}/g, function(m, k){
+        return Object.prototype.hasOwnProperty.call(map, k) ? String(map[k]) : m;
+      });
+    }
+    function each(sel, fn) { var n = document.querySelectorAll(sel); for (var i = 0; i < n.length; i++) fn(n[i]); }
+    function Tin(lang, k) {
+      var d = I18N[lang] || {};
+      if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+      return Object.prototype.hasOwnProperty.call(I18N.en, k) ? I18N.en[k] : k;
+    }
+    var scratch = null;
+    function textOf(h) { scratch = scratch || document.createElement('div'); scratch.innerHTML = h; return scratch.textContent; }
+    function renderNav() {
+      var navs = document.querySelectorAll('.nrLang');
+      for (var n = 0; n < navs.length; n++) {
+        var nav = navs[n];
+        nav.setAttribute('aria-label', T('langLabel'));
+        // nr_langdd (2026-09-12, SF: "it takes up too much space"): ONE PILL with the current language; a tap opens
+        // the six rows under it (a native <details>: no script needed to open it). Every copy of the English flag
+        // gets its own clip-path ids: the nav number plus the row.
+        var flag = function(c, k){ return FLAGS[c].split('nrGb').join('nrGb' + n + k); };
+        var h = '<details class="nrDd"><summary lang="' + LANG + '" title="' + NAMES[LANG] + '">' + flag(LANG, 's') +
+                '<b>' + LANG.toUpperCase() + '</b><span class="nrCaret" aria-hidden="true">&#9662;</span></summary><div class="nrDdMenu">';
+        for (var i = 0; i < LANGS.length; i++) {
+          var c = LANGS[i], inner = flag(c, 'r' + i) + '<b>' + c.toUpperCase() + '</b><span class="nm">' + NAMES[c] + '</span>';
+          h += c === LANG
+            ? '<span class="cur" aria-current="true" lang="' + c + '" title="' + NAMES[c] + '">' + inner + '<span class="ck" aria-hidden="true">&#10003;</span></span>'
+            : '<a href="?lang=' + c + '" hreflang="' + c + '" lang="' + c + '" title="' + NAMES[c] + '" data-lang="' + c + '">' + inner + '</a>';
+        }
+        nav.innerHTML = h + '</div></details>';
+      }
+    }
+    // prev = the language the page shows right now. First load: 'en' (the markup). An English first load
+    // therefore rewrites nothing and runs no hooks. 'Soft' texts are defaults the page's own code
+    // overwrites with live state ('offline', 'connecting...'): they are replaced only while they still
+    // show the default, so a switch never clobbers live state -- that code writes its next update in the
+    // new language by itself. Hooks (nrI18nOnSwitch) redraw what code built, after every rewrite.
+    function applyLang(prev) {
+      document.documentElement.lang = LANG;
+      var rewrite = prev !== LANG;
+      if (rewrite) {
+        each('[data-i18n]', function(el){ el.textContent = T(el.getAttribute('data-i18n')); });
+        each('[data-i18n-html]', function(el){ el.innerHTML = T(el.getAttribute('data-i18n-html')); });
+        each('[data-i18n-attr]', function(el){
+          var parts = el.getAttribute('data-i18n-attr').split(';');
+          for (var i = 0; i < parts.length; i++) {
+            var j = parts[i].indexOf(':');
+            if (j > 0) el.setAttribute(parts[i].slice(0, j), T(parts[i].slice(j + 1)));
+          }
+        });
+        each('[data-i18n-soft]', function(el){
+          var k = el.getAttribute('data-i18n-soft');
+          if (el.textContent === Tin(prev, k)) el.textContent = T(k);
+        });
+        each('[data-i18n-soft-html]', function(el){
+          var k = el.getAttribute('data-i18n-soft-html');
+          if (el.textContent === textOf(Tin(prev, k))) el.innerHTML = T(k);
+        });
+      }
+      each('.nrEnCounts', function(el){ el.hidden = LANG === 'en'; });
+      renderNav();
+      if (rewrite) for (var h = 0; h < hooks.length; h++) { try { hooks[h](LANG, prev); } catch (e) {} }
+    }
+    function pickLang(c) {
+      if (LANGS.indexOf(c) < 0 || c === LANG) return;
+      var prev = LANG;
+      LANG = c;
+      try { localStorage.setItem('nrLang', c); } catch (e) {}
+      try {
+        var u = new URL(location.href);
+        if (c === 'en') u.searchParams.delete('lang'); else u.searchParams.set('lang', c);
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      } catch (e) {}
+      applyLang(prev);
+    }
+    document.addEventListener('click', function(e){
+      var a = e.target && e.target.closest ? e.target.closest('.nrLang a[data-lang]') : null;
+      if (!a) return;
+      e.preventDefault();
+      pickLang(a.getAttribute('data-lang'));
+    });
+    // nr_langdd: an open pill closes on a tap anywhere else, and on Escape (a pick re-renders it closed by itself)
+    document.addEventListener('click', function(e){
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) if (!open[i].contains(e.target)) open[i].removeAttribute('open');
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      var open = document.querySelectorAll('.nrLang .nrDd[open]');
+      for (var i = 0; i < open.length; i++) open[i].removeAttribute('open');
+    });
+    window.T = T;
+    window.fill = fill;
+    window.nrLangNow = function(){ return LANG; };
+    window.nrLocale = function(){ return LOCALES[LANG]; };
+    window.nrI18nOnSwitch = function(fn){ if (typeof fn === 'function') hooks.push(fn); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ applyLang('en'); });
+    else applyLang('en');
+  })();
+</script>
+<script>
+(function(){
+  var b = document.getElementById('liveBadge'), t = document.getElementById('liveText');
+  if (!b) return;
+  function poll(){
+    fetch('/owncast-status', {cache: 'no-store'}).then(function(r){ return r.json(); }).then(function(d){
+      var on = !!(d && d.online === true);
+      b.classList.toggle('on', on);
+      t.textContent = on ? T('playBadgeLive') : T('playBadgeOffline');
+    }).catch(function(){});
+  }
+  poll(); setInterval(poll, 15000);
+})();
+</script>
+<script src="/assets/nr-edit.js" defer></script>
+</body>
+</html>
