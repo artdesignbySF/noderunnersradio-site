@@ -1,4 +1,4 @@
-/* nr-edit.js (2026-09-14) -- the captain's Edit button. Drawn ONLY when /api/session says authed (the console's
+/* nr-edit-2.js (2026-10-04: Ctrl+B / Ctrl+I handled here -- Firefox opened its bookmarks) -- was nr-edit.js (2026-09-14) -- the captain's Edit button. Drawn ONLY when /api/session says authed (the console's
    HttpOnly cookie); everyone else gets nothing. English only: the other five languages follow (DeepL or by hand).
    Edit mode makes every translatable block editable; Save posts the changed blocks to /api/admin/page/save, which checks
    the cookie again. Text only. */
@@ -94,7 +94,17 @@
     document.body.style.paddingBottom = '70px';
   }
   function onEsc(e) { if (e.key === 'Escape') { e.preventDefault(); cancel(); } }
-  function onKey(e) { if (e.key === 'Enter' && this.hasAttribute('data-i18n')) e.preventDefault(); }
+  function onKey(e) {
+    if (e.key === 'Enter' && this.hasAttribute('data-i18n')) e.preventDefault();
+    // nr-edit-2 (2026-10-04, SF: "ctrl+b opens bookmarks in firefox"): bold and italic are done HERE, and the
+    // browser's own shortcut (Firefox: the bookmarks sidebar) is stopped inside an editable block. Plain-text
+    // blocks (data-i18n) take neither, as before.
+    var k = (e.key || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (k === 'b' || k === 'i')) {
+      e.preventDefault(); e.stopPropagation();
+      if (!this.hasAttribute('data-i18n')) document.execCommand(k === 'b' ? 'bold' : 'italic', false, null);
+    }
+  }
   function onPaste(e) {
     e.preventDefault();
     var t = (e.clipboardData || window.clipboardData).getData('text/plain');

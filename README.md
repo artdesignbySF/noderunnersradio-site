@@ -8,7 +8,11 @@ The code is static HTML, CSS and JavaScript. The pages talk to the station's API
 
 | File | What it is |
 | --- | --- |
-| `index.html` | Homepage: player, jukebox, now playing, backdrops |
+| `index.html` | Homepage: player, jukebox, catalog ("Browse the ship"), now playing, history, backdrops |
+| `play.html` | The one-page "play a song" guide with QR codes |
+| `top.html` | The most requested songs |
+| `first-sats.html` | "Your first sats": a beginner's guide to a Lightning wallet |
+| `podcast.xml` | The podcast feed (Podcasting 2.0, with value-for-value) |
 | `funding.html` | How the station is funded |
 | `manifesto.html` | What the station is and why it exists |
 | `dj-handbook.html` | Handbook for DJs who host a live session |
@@ -20,7 +24,9 @@ The code is static HTML, CSS and JavaScript. The pages talk to the station's API
 
 ## Assets
 
-`assets/` holds the logo, favicons, images, the page-edit helper (`nr-edit.js`) and two third-party scripts (`hls.min.js`, `qrcode.min.js`).
+`assets/` holds the logo, favicons, images, the page scripts and two third-party scripts (`hls.min.js`, `qrcode.min.js`).
+
+Some scripts only draw something for the station's captain when he is logged in: the page editor (`nr-edit-2.js`), the rotation button (`nr-rot-1.js`) and the captain's playlists (`nr-mylists-1.js`). For everyone else they do nothing. The station checks the captain's login on every call, so the scripts hold no secrets.
 
 `assets/backdrops/` holds the backdrop index (`index.json`) and the thumbnails (`t/`). The full-size backdrop images are served from the station and are not in this repository.
 

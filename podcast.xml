@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Noderunners Radio</title>
+  <link>https://noderunnersradio.com</link>
+  <atom:link href="https://noderunnersradio.com/podcast.xml" rel="self" type="application/rss+xml"/>
+  <description>Noderunners Radio is a Bitcoin community radio station with a Lightning jukebox, on air around the clock at https://noderunnersradio.com. Anyone can request a song on the website, in Telegram, on Nostr or on X, pay a few sats, and hear it on air. Now and then DJs play live sets. Boost or stream sats here to support the station.</description>
+  <language>en</language>
+  <itunes:author>Noderunners Radio</itunes:author>
+  <itunes:summary>Noderunners Radio is a Bitcoin community radio station with a Lightning jukebox, on air around the clock at https://noderunnersradio.com. Anyone can request a song on the website, in Telegram, on Nostr or on X, pay a few sats, and hear it on air. Now and then DJs play live sets. Boost or stream sats here to support the station.</itunes:summary>
+  <itunes:image href="https://noderunnersradio.com/assets/podcast/cover-3000.jpg"/>
+  <image><url>https://noderunnersradio.com/assets/podcast/cover-3000.jpg</url><title>Noderunners Radio</title><link>https://noderunnersradio.com</link></image>
+  <itunes:category text="Music"/>
+  <itunes:explicit>true</itunes:explicit>
+  <itunes:type>episodic</itunes:type>
+  <podcast:guid>575a9de4-6e47-535d-8cf6-6191cae9b04f</podcast:guid>
+  <podcast:medium>podcast</podcast:medium>
+  <podcast:locked>yes</podcast:locked>
+  <podcast:funding url="https://noderunnersradio.com">Support the station</podcast:funding>
+  <podcast:value type="lightning" method="keysend">
+    <podcast:valueRecipient name="Noderunners Radio" type="node" address="0376d801405f3f0156a8b2edd2db3c5bb85f8741d751ba05f22d07e863012a671d" split="100"/>
+  </podcast:value>
+  <podcast:liveItem status="live" start="2026-10-01T00:00:00.000+00:00" end="2027-10-01T00:00:00.000+00:00">
+    <title>Noderunners Radio, live 24/7</title>
+    <description>The station, live: the jukebox, the rotation and the live DJ sets. Request a song at https://noderunnersradio.com, in Telegram, on Nostr or on X. Send sats to our DJs and the Radio to support us!</description>
+    <link>https://noderunnersradio.com</link>
+    <guid isPermaLink="false">noderunnersradio-live-24-7</guid>
+    <itunes:image href="https://noderunnersradio.com/assets/podcast/cover-3000.jpg"/>
+    <podcast:alternateEnclosure type="audio/mpeg" bitrate="192000" default="true" title="MP3 192 kbps">
+      <podcast:source uri="https://stream.noderunnersradio.com/stream"/>
+    </podcast:alternateEnclosure>
+    <enclosure url="https://stream.noderunnersradio.com/stream" type="audio/mpeg" length="1"/>
+    <podcast:contentLink href="https://noderunnersradio.com">Watch and listen on NoderunnersRadio.com</podcast:contentLink>
+    <podcast:contentLink href="https://zap.stream/naddr1qqgkummyv4e82mnwv4e8xttjv9jxjmczyq6cyfd8ctcrcxs0p9h3tawy3nggp68r9zc58zwmq9gk6gng8q6j7qcyqqq8vecwz2klw">Watch on zap.stream (Nostr)</podcast:contentLink>
+    <podcast:value type="lightning" method="keysend">
+      <podcast:valueRecipient name="Noderunners Radio" type="node" address="0376d801405f3f0156a8b2edd2db3c5bb85f8741d751ba05f22d07e863012a671d" split="100"/>
+    </podcast:value>
+  </podcast:liveItem>
+  <item>
+    <title>Welcome to Noderunners Radio</title>
+    <description>A short station ID by Truuus. To hear the radio, open “Noderunners Radio, live 24/7” at the top of this show, or go to https://noderunnersradio.com</description>
+    <guid isPermaLink="false">noderunnersradio-welcome-2026-10-01</guid>
+    <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+    <enclosure url="https://noderunnersradio.com/assets/podcast/welcome.mp3" type="audio/mpeg" length="249729"/>
+    <itunes:duration>10</itunes:duration>
+    <itunes:episodeType>trailer</itunes:episodeType>
+    <itunes:explicit>false</itunes:explicit>
+  </item>
+</channel>
+</rss>
