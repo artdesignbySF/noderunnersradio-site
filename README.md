@@ -2,6 +2,18 @@
 
 Noderunners Radio is a community radio station with a Lightning jukebox. Listeners pay a few sats to request a song. This repository holds the public pages of https://noderunnersradio.com.
 
+## Support the station ⚡
+
+Noderunners Radio is not a business. Listeners, DJs and friends keep the ship afloat. If you enjoy the station, or this code is useful to you, please send a tip to the station's tip jar:
+
+- **Lightning Address:** `radio@lnbits.plebprojects.com` (works from any Lightning wallet)
+- **Zap on Nostr:** the station is [`npub1ua6fxn9ktc4jncanf79jzvklgjftcdrt5etverwzzg0lgpmg3hsq2gh6v6`](https://njump.me/npub1ua6fxn9ktc4jncanf79jzvklgjftcdrt5etverwzzg0lgpmg3hsq2gh6v6); zaps land in the same tip jar
+- **Where the sats go:** https://noderunnersradio.com/funding
+
+A tip is a gift to the station, never a payment for music. Every sat helps keep the radio on the air.
+
+## How it works
+
 The code is static HTML, CSS and JavaScript. The pages talk to the station's API at noderunnersradio.com for the stream, the jukebox, now-playing data and the funding counter.
 
 ## Pages
