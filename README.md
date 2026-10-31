@@ -50,6 +50,21 @@ The station API, the jukebox backend, the bots (Telegram, X, Nostr), the stream 
 
 Open `index.html` in a browser. The pages call the live station API at noderunnersradio.com, so the player, the jukebox and the live data need a network connection. The full-size backdrops load from the station too.
 
+## Links
+
+**The station**
+- Website and player: https://noderunnersradio.com · request a song: https://noderunnersradio.com/play
+- Telegram group and jukebox bot: https://t.me/noderunnersradio
+- Live on Nostr: [zap.stream](https://zap.stream/naddr1qqgkummyv4e82mnwv4e8xttjv9jxjmczyq6cyfd8ctcrcxs0p9h3tawy3nggp68r9zc58zwmq9gk6gng8q6j7qcyqqq8vecwz2klw) · the station on Nostr: [`npub1ua6f…6v6`](https://njump.me/npub1ua6fxn9ktc4jncanf79jzvklgjftcdrt5etverwzzg0lgpmg3hsq2gh6v6)
+- The jukebox on X: https://x.com/JukeboxLNDbot
+- This code on GitHub: https://github.com/artdesignbySF/noderunnersradio-site · on gittr (Nostr): https://gittr.space/npub1ua6fxn9ktc4jncanf79jzvklgjftcdrt5etverwzzg0lgpmg3hsq2gh6v6/noderunnersradio-site
+
+**Friends and sister projects**
+- [Noderunners](https://noderunners.network): the Dutch bitcoin-only community the station grew from
+- [Pleb Projects](https://plebprojects.com): the home of our other projects and the tools we like
+- [Bitcoin Fortune Cookie](https://bitcoinfortunecookie.com): crack a cookie for a few sats
+- [Pleb Royale](https://plebroyale.com): art and design
+
 ## Licence
 
 - The code (the HTML, CSS and JavaScript written for this site) is licensed under the GNU General Public License v3.0. See `LICENSE`.
